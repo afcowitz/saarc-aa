@@ -242,7 +242,7 @@
    ========================================================= */
 const SUPABASE_URL = 'https://beijsnnzxldhygvomyhl.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJlaWpzbm56eGxkaHlndm9teWhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3OTgzNzgsImV4cCI6MjEwMzM3NDM3OH0.cMaVMAlCsWs56QpzHo8UJjOeaahzSCiPRbRnxoLr6Hc';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* =========================================================
    SETTINGS LAYER — a simple key/value table (site_settings) in
@@ -252,17 +252,17 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
    database side, not just in this JS).
    ========================================================= */
 async function fetchSetting(key, fallback){
-  const { data, error } = await supabase.from('site_settings').select('value').eq('key', key).maybeSingle();
+  const { data, error } = await supabaseClient.from('site_settings').select('value').eq('key', key).maybeSingle();
   if(error || !data) return fallback;
   return data.value;
 }
 async function upsertSetting(key, value){
-  const { error } = await supabase.from('site_settings').upsert({ key, value, updated_at: new Date().toISOString() });
+  const { error } = await supabaseClient.from('site_settings').upsert({ key, value, updated_at: new Date().toISOString() });
   if(error){ console.error('Supabase save failed for', key, error); return false; }
   return true;
 }
 async function getVisitCount(){
-  const { data, error } = await supabase.rpc('increment_visits');
+  const { data, error } = await supabaseClient.rpc('increment_visits');
   if(error){ console.error('Visit counter RPC failed', error); return 0; }
   return data;
 }
@@ -682,7 +682,7 @@ function renderNav(){
   }
   document.getElementById('mainNav').innerHTML = html;
 }
-async function logout(){ await supabase.auth.signOut(); session = null; navigate('home'); }
+async function logout(){ await supabaseClient.auth.signOut(); session = null; navigate('home'); }
 
 /* =========================================================
    PAGE: HOME
@@ -872,7 +872,7 @@ async function handleLogin(e){
   const submitBtn = e.target.querySelector('button[type="submit"]');
   if(submitBtn){ submitBtn.disabled = true; submitBtn.textContent = 'Logging in…'; }
 
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
   if(error || !data.user){
     loginError = 'Incorrect email or password.';
@@ -880,7 +880,7 @@ async function handleLogin(e){
     return;
   }
 
-  const { data: roleRow, error: roleError } = await supabase
+  const { data: roleRow, error: roleError } = await supabaseClient
     .from('admin_roles')
     .select('admin_key')
     .eq('email', email)
@@ -889,7 +889,7 @@ async function handleLogin(e){
   const adminKey = roleRow && roleRow.admin_key;
   if(roleError || !adminKey || !ROLE_LABELS[adminKey]){
     loginError = "This account isn't set up as a SAARC-AA admin — check the admin_roles table in Supabase.";
-    await supabase.auth.signOut();
+    await supabaseClient.auth.signOut();
     render();
     return;
   }
@@ -1093,7 +1093,7 @@ function handleGalleryFileSelect(index, file){
 
       canvas.toBlob(async function(blob){
         const fileName = `${Date.now()}-${Math.random().toString(36).slice(2,8)}.jpg`;
-        const { error: uploadError } = await supabase.storage.from('post-images').upload(fileName, blob, {
+        const { error: uploadError } = await supabaseClient.storage.from('post-images').upload(fileName, blob, {
           contentType: 'image/jpeg',
           upsert: false
         });
@@ -1104,7 +1104,7 @@ function handleGalleryFileSelect(index, file){
           renderPostFormModal();
           return;
         }
-        const { data: urlData } = supabase.storage.from('post-images').getPublicUrl(fileName);
+        const { data: urlData } = supabaseClient.storage.from('post-images').getPublicUrl(fileName);
         formDraft.images[index].url = urlData.publicUrl;
         renderPostFormModal();
       }, 'image/jpeg', GALLERY_JPEG_QUALITY);
