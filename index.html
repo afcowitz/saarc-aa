@@ -804,13 +804,20 @@ function pagePostDetail(id){
    LOGIN
    ========================================================= */
 let loginError = '';
-// These just need to match whatever emails you actually create in
-// Supabase Authentication — used only to prefill the email field for
-// convenience during testing. They're not secrets and don't grant access.
+// These are used only to prefill the login form for convenience during
+// testing — edit ADMIN_EMAILS to match whatever you actually created in
+// Supabase Authentication. ADMIN_TEST_PASSWORDS is OPTIONAL: leave it as
+// {} (or delete entries) once you're using real passwords you care about
+// protecting, since anyone can view this page's source and read them.
 const ADMIN_EMAILS = {
-  president: 'president@saarc-aa.org',
-  vicepresident: 'vp@saarc-aa.org',
-  generalsecretary: 'gensec@saarc-aa.org'
+  president: 'afcowitz+president@gmail.com',
+  vicepresident: 'afcowitz+vp@gmail.com',
+  generalsecretary: 'afcowitz+gensec@gmail.com'
+};
+const ADMIN_TEST_PASSWORDS = {
+  president: 'password',
+  vicepresident: 'password',
+  generalsecretary: 'password'
 };
 
 function pageLogin(){
@@ -835,7 +842,7 @@ function pageLogin(){
           <input type="radio" name="quickLogin" value="generalsecretary" onchange="applyQuickLogin(this.value)"> general secretary
         </label>
       </div>
-      <div class="field-hint">Fills in the email field only — passwords are real now (set in Supabase), so you'll still need to type yours.</div>
+      <div class="field-hint">Fills in email (and password, if you've set one in ADMIN_TEST_PASSWORDS) — testing convenience only.</div>
     </div>
 
     <form onsubmit="handleLogin(event)">
@@ -861,9 +868,11 @@ function applyQuickLogin(value){
   const userEl = document.getElementById('loginUser');
   const passEl = document.getElementById('loginPass');
   if(!userEl || !passEl) return;
-  if(value === 'manual'){ userEl.value = ''; }
-  else { userEl.value = ADMIN_EMAILS[value] || ''; }
-  passEl.value = '';
+  if(value === 'manual'){ userEl.value = ''; passEl.value = ''; }
+  else {
+    userEl.value = ADMIN_EMAILS[value] || '';
+    passEl.value = ADMIN_TEST_PASSWORDS[value] || '';
+  }
 }
 async function handleLogin(e){
   e.preventDefault();
