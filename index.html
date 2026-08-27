@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAARC-AA — SAARC Anesthesiologists' Association</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,650;9..144,720&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1A211E;
+    --ink-soft:#525C57;
+    --surface:#F5F7F5;
+    --surface-alt:#FFFFFF;
+    --primary:#0F6656;
+    --primary-light:#16856F;
+    --primary-dark:#0A4A3F;
+    --accent:#E8604A;
+    --accent-soft:#FBDCD3;
+    --secondary:#2F7A93;
+    --line:#E2E7E3;
+    --danger:#A33B2B;
+    --danger-soft:#F3D9D3;
+    --radius:14px;
+    --shadow-sm:0 1px 2px rgba(16,30,25,.05);
+    --shadow-md:0 10px 28px -14px rgba(16,30,25,.22);
+    --serif:'Fraunces', Georgia, serif;
+    --sans:'Inter', -apple-system, Segoe UI, sans-serif;
+    --mono:'IBM Plex Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;font-family:var(--sans);background:var(--surface);color:var(--ink);
+    line-height:1.55;-webkit-font-smoothing:antialiased;
+    transition:background .35s ease;
+  }
+  a{color:inherit;text-decoration:none;}
+  h1,h2,h3,h4{font-family:var(--serif);margin:0 0 .4em 0;color:var(--primary-dark);font-weight:600;}
+  p{margin:0 0 1em 0;}
+  button{font-family:var(--sans);cursor:pointer;}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px;}
+
+  /* ---------- Header ---------- */
+  header.site-header{background:var(--surface-alt);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50;}
+  .header-inner{max-width:1080px;margin:0 auto;padding:14px 24px 10px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .brand{display:flex;align-items:center;gap:12px;cursor:pointer;}
+  .brand-mark{
+    width:46px;height:46px;border-radius:50%;
+    background:radial-gradient(circle at 32% 28%, var(--primary-light), var(--primary-dark));
+    border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;
+    color:#fff;font-family:var(--serif);font-weight:700;font-size:15px;flex-shrink:0;
+  }
+  .brand-text .name{font-family:var(--serif);font-weight:700;font-size:19px;color:var(--primary-dark);line-height:1.1;}
+  .brand-text .sub{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);}
+  nav.main-nav{display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
+  nav.main-nav button.navlink{padding:8px 12px;border-radius:8px;font-size:14.5px;font-weight:500;color:var(--ink-soft);background:none;border:none;}
+  nav.main-nav button.navlink:hover{background:var(--surface);color:var(--primary-dark);}
+  nav.main-nav button.navlink.active{background:var(--primary);color:#fff;}
+  .btn-login{background:var(--accent) !important;color:#2b1c04 !important;font-weight:600 !important;}
+  .btn-login:hover{background:#a97a29 !important;color:#fff !important;}
+
+  /* presidency ribbon */
+  .ribbon{border-top:1px solid var(--line);background:#FAFBF9;}
+  .ribbon-inner{max-width:1080px;margin:0 auto;padding:8px 24px;display:flex;align-items:center;gap:10px;overflow-x:auto;}
+  .ribbon-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);flex-shrink:0;margin-right:2px;}
+  .ribbon-badge{
+    display:flex;align-items:center;gap:5px;padding:3px 9px 3px 6px;border-radius:20px;
+    font-size:12px;color:var(--ink-soft);border:1px solid transparent;white-space:nowrap;flex-shrink:0;
+  }
+  .ribbon-badge .flag{font-size:14px;}
+  .ribbon-badge.host{background:var(--primary);color:#fff;font-weight:600;border-color:var(--primary);}
+
+  /* ---------- Header accent bar ---------- */
+  .accent-bar{height:3px;background:linear-gradient(90deg, var(--primary), var(--accent));}
+
+  /* ---------- Hero ---------- */
+  .hero{background:linear-gradient(180deg, var(--primary-dark), var(--primary));color:#fff;padding:48px 0 0 0;transition:background .35s ease;}
+  .hero-inner{max-width:1080px;margin:0 auto;padding:0 24px 40px 24px;display:grid;grid-template-columns:1.3fr 1fr;gap:40px;align-items:center;}
+  .hero .eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-soft);font-weight:600;margin-bottom:10px;}
+  .hero h1{color:#fff;font-size:clamp(28px,4vw,42px);line-height:1.15;max-width:560px;}
+  .hero p.lede{color:#E4ECE7;max-width:480px;font-size:16px;}
+  .hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .stat-card{background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.2);border-radius:var(--radius);padding:16px;}
+  .stat-card .num{font-family:var(--mono);font-size:26px;font-weight:600;color:var(--accent-soft);}
+  .stat-card .lbl{font-size:12px;color:#D6E2DC;margin-top:2px;}
+
+  /* ---------- Section shells ---------- */
+  main{min-height:60vh;}
+  .section{padding:44px 0;}
+  .section-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:22px;gap:16px;flex-wrap:wrap;}
+  .section-head h2{font-size:24px;}
+  .section-head .see-all{font-size:13.5px;font-weight:600;color:var(--secondary);border-bottom:1px solid var(--secondary);padding-bottom:1px;}
+
+  .tri-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+  .info-card{background:var(--surface-alt);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm);}
+  .info-card .tag{display:inline-block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--primary);background:#E4EEE9;padding:3px 9px;border-radius:20px;margin-bottom:10px;}
+  .info-card h3{font-size:17px;margin-bottom:6px;}
+  .info-card p{font-size:14px;color:var(--ink-soft);margin-bottom:0;}
+
+  /* ---------- Post feed / cards ---------- */
+  .post-list{display:flex;flex-direction:column;gap:16px;}
+  .post-card{background:var(--surface-alt);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;cursor:pointer;transition:box-shadow .15s, transform .15s;box-shadow:var(--shadow-sm);}
+  .post-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px);}
+  .post-meta{display:flex;gap:10px;align-items:center;font-size:12px;color:var(--ink-soft);margin-bottom:8px;flex-wrap:wrap;}
+  .pill{padding:2px 9px;border-radius:20px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:10.5px;}
+  .pill.current{background:#E4EEE9;color:var(--primary);}
+  .pill.upcoming{background:var(--accent-soft);color:var(--primary-dark);}
+  .pill.past{background:#E7E7E9;color:#4B4B52;}
+  .pill.general{background:#DDEAEA;color:var(--secondary);}
+  .post-card h3{font-size:18px;margin-bottom:6px;}
+  .post-excerpt{font-size:14.5px;color:var(--ink-soft);}
+  .type-icon{font-family:var(--mono);font-size:11px;color:var(--accent);}
+
+  /* ---------- Gallery ---------- */
+  .gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin:14px 0;}
+  .gallery-tile{aspect-ratio:4/3;border-radius:8px;display:flex;align-items:flex-end;padding:10px;color:#fff;font-size:12px;font-weight:600;position:relative;overflow:hidden;border:1px solid rgba(0,0,0,0.06);}
+  .gallery-tile .cap{background:rgba(0,0,0,0.38);padding:4px 8px;border-radius:6px;line-height:1.3;}
+  .gallery-tile .ph-icon{position:absolute;top:10px;right:10px;font-size:20px;opacity:.55;}
+
+  /* ---------- Table ---------- */
+  table.data-table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px;}
+  table.data-table th, table.data-table td{border:1px solid var(--line);padding:9px 12px;text-align:left;}
+  table.data-table th{background:var(--surface);font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--primary-dark);}
+  table.data-table tr:nth-child(even) td{background:#FAFBF9;}
+
+  /* ---------- Buttons ---------- */
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:8px;font-weight:600;font-size:14px;border:1px solid transparent;}
+  .btn-primary{background:var(--primary);color:#fff;}
+  .btn-primary:hover{background:var(--primary-light);}
+  .btn-outline{background:transparent;border-color:var(--line);color:var(--ink);}
+  .btn-outline:hover{border-color:var(--secondary);color:var(--secondary);}
+  .btn-danger{background:var(--danger-soft);color:var(--danger);}
+  .btn-danger:hover{background:var(--danger);color:#fff;}
+  .btn-sm{padding:6px 12px;font-size:12.5px;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+
+  /* ---------- Forms ---------- */
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:13px;font-weight:600;color:var(--ink-soft);margin-bottom:5px;}
+  .field input, .field select, .field textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-family:var(--sans);font-size:14px;background:#fff;color:var(--ink);}
+  .field textarea{resize:vertical;min-height:110px;}
+  .field-hint{font-size:12px;color:var(--ink-soft);margin-top:4px;}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .card-panel{background:var(--surface-alt);border:1px solid var(--line);border-radius:var(--radius);padding:26px;box-shadow:var(--shadow-sm);}
+  .narrow{max-width:440px;margin:0 auto;}
+
+  /* ---------- Admin ---------- */
+  .admin-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;gap:16px;flex-wrap:wrap;}
+  .admin-badge{font-size:13px;color:var(--ink-soft);}
+  .admin-badge strong{color:var(--primary-dark);}
+  .counter-card{background:var(--primary-dark);color:#fff;border-radius:var(--radius);padding:22px 26px;display:flex;align-items:center;justify-content:space-between;margin-bottom:26px;flex-wrap:wrap;gap:14px;}
+  .counter-card .num{font-family:var(--mono);font-size:38px;font-weight:600;color:var(--accent-soft);}
+  .counter-card .lbl{font-size:13px;color:#CBD9D2;text-transform:uppercase;letter-spacing:.08em;}
+  .storage-meter{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 14px;margin-bottom:26px;}
+  .admin-post-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line);}
+  .admin-post-row:last-child{border-bottom:none;}
+  .admin-post-row .info small{color:var(--ink-soft);}
+  .gallery-editor-row, .table-row-editor{display:flex;gap:8px;margin-bottom:8px;align-items:center;}
+  .gallery-editor-row input, .table-row-editor input{flex:1;}
+  .gallery-upload-row{display:flex;gap:10px;margin-bottom:10px;align-items:center;}
+  .gallery-thumb{width:64px;height:64px;flex-shrink:0;border-radius:8px;background:var(--surface);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--ink-soft);text-align:center;}
+  .file-upload-btn{display:inline-block;font-size:12.5px;font-weight:600;color:var(--secondary);border:1px solid var(--line);border-radius:6px;padding:5px 10px;cursor:pointer;width:fit-content;background:#fff;}
+  .file-upload-btn:hover{border-color:var(--secondary);}
+  .icon-btn{background:none;border:none;color:var(--danger);font-size:16px;padding:4px 8px;}
+  .alert{padding:11px 14px;border-radius:8px;font-size:13.5px;margin-bottom:16px;}
+  .alert-error{background:var(--danger-soft);color:var(--danger);}
+  .alert-success{background:#DCEFE3;color:var(--primary-dark);}
+
+  /* ---------- Theme picker ---------- */
+  .theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-top:14px;}
+  .theme-card{border:2px solid var(--line);border-radius:var(--radius);padding:14px;background:#fff;position:relative;transition:border-color .15s;cursor:pointer;}
+  .theme-card.active-theme{border-color:var(--primary);}
+  .theme-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .theme-card .swatches{display:flex;gap:6px;}
+  .theme-card .swatch{width:20px;height:20px;border-radius:50%;border:1px solid rgba(0,0,0,0.1);}
+  .theme-card h4{font-size:14.5px;margin-bottom:2px;}
+  .theme-card .flagline{font-size:12px;color:var(--ink-soft);margin-bottom:0;}
+  .icon-edit-btn{background:var(--surface);border:1px solid var(--line);border-radius:8px;width:28px;height:28px;font-size:12.5px;color:var(--ink-soft);flex-shrink:0;}
+  .icon-edit-btn:hover{color:var(--primary-dark);border-color:var(--secondary);}
+  .active-inline-tag, .custom-inline-tag{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:6px;vertical-align:middle;text-transform:uppercase;letter-spacing:.03em;}
+  .active-inline-tag{color:var(--primary);background:#E4EEE9;}
+  .custom-inline-tag{color:var(--secondary);background:#E7F1F4;}
+
+  footer{background:var(--primary-dark);color:#CBD9D2;padding:36px 0;margin-top:40px;transition:background .35s ease;}
+  footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;font-size:13px;}
+  footer .members{opacity:.8;max-width:560px;}
+
+  .breadcrumb{font-size:13px;color:var(--secondary);margin-bottom:14px;display:inline-block;}
+  .tab-row{display:flex;gap:6px;margin-bottom:20px;}
+  .tab-btn{padding:8px 16px;border-radius:20px;border:1px solid var(--line);background:#fff;font-size:13.5px;font-weight:600;color:var(--ink-soft);}
+  .tab-btn.active{background:var(--primary);border-color:var(--primary);color:#fff;}
+  .empty-state{text-align:center;padding:40px 20px;color:var(--ink-soft);}
+  .storage-note{font-size:11.5px;color:var(--ink-soft);text-align:center;padding:10px 24px 0 24px;}
+
+  @media (max-width:760px){
+    .hero-inner{grid-template-columns:1fr;}
+    .tri-grid{grid-template-columns:1fr;}
+    .field-row{grid-template-columns:1fr;}
+    footer .wrap{flex-direction:column;}
+    nav.main-nav{gap:2px;}
+    nav.main-nav button.navlink{padding:7px 8px;font-size:13px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand" onclick="navigate('home')">
+      <div class="brand-mark">SAA</div>
+      <div class="brand-text">
+        <div class="name">SAARC-AA</div>
+        <div class="sub">Anesthesiologists' Association</div>
+      </div>
+    </div>
+    <nav class="main-nav" id="mainNav"></nav>
+  </div>
+  <div class="ribbon"><div class="ribbon-inner" id="ribbonRow"></div></div>
+  <div class="accent-bar"></div>
+</header>
+
+<main id="app"></main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <strong style="color:#fff;">SAARC Anesthesiologists' Association</strong><br>
+      <span id="footerTagline">Advancing the science and practice of anesthesiology across South Asia.</span>
+    </div>
+    <div class="members" id="footerMembers"></div>
+  </div>
+</footer>
+<p class="storage-note">This site is backed by Supabase — posts, the theme, and the visit counter are shared with every visitor, not just this browser.</p>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* =========================================================
+   SUPABASE CONNECTION
+   Fill these in from your Supabase project:
+   Dashboard > Project Settings > API > Project URL / anon public key
+   ========================================================= */
+const SUPABASE_URL = 'https://beijsnnzxldhygvomyhl.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJlaWpzbm56eGxkaHlndm9teWhsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3OTgzNzgsImV4cCI6MjEwMzM3NDM3OH0.cMaVMAlCsWs56QpzHo8UJjOeaahzSCiPRbRnxoLr6Hc';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* =========================================================
+   SETTINGS LAYER — a simple key/value table (site_settings) in
+   Supabase holds posts, editable page content, the active theme,
+   and theme color overrides. Reading is public; writing requires
+   an admin to be logged in (enforced by Row Level Security on the
+   database side, not just in this JS).
+   ========================================================= */
+async function fetchSetting(key, fallback){
+  const { data, error } = await supabase.from('site_settings').select('value').eq('key', key).maybeSingle();
+  if(error || !data) return fallback;
+  return data.value;
+}
+async function upsertSetting(key, value){
+  const { error } = await supabase.from('site_settings').upsert({ key, value, updated_at: new Date().toISOString() });
+  if(error){ console.error('Supabase save failed for', key, error); return false; }
+  return true;
+}
+async function getVisitCount(){
+  const { data, error } = await supabase.rpc('increment_visits');
+  if(error){ console.error('Visit counter RPC failed', error); return 0; }
+  return data;
+}
+/* Real login now goes through Supabase Auth (email + password), so no
+   passwords live in this file. After a successful sign-in, we look up
+   the signed-in email in the 'admin_roles' table (see
+   admin_roles_setup.sql) to find out which of these three roles they
+   are — this avoids needing to touch Supabase's protected auth.users
+   table directly. */
+const ROLE_LABELS = {
+  president: 'President',
+  vicepresident: 'Vice President',
+  generalsecretary: 'General Secretary'
+};
+
+/* All editable page copy lives here — the President, Vice President, and
+   general secretary can change any of it from the admin dashboard's
+   "Site Content" editor, without touching code. */
+const DEFAULT_CONTENT = {
+  heroHeadline: "Advancing safe anesthesia care across South Asia, together.",
+  heroLede: "SAARC-AA connects national anesthesiology societies from eight member countries to share research, set regional standards of care, and train the next generation of anesthesiologists.",
+  footerTagline: "Advancing the science and practice of anesthesiology across South Asia.",
+  aboutIntro: "The SAARC Anesthesiologists' Association (SAARC-AA) is the regional professional body representing national anesthesiology societies across Afghanistan, Bangladesh, Bhutan, India, Maldives, Nepal, Pakistan, and Sri Lanka. Founded in 1987, the association exists to advance safe anesthesia practice, share clinical research, and coordinate continuing education across South Asia.",
+  aboutGovernance: "SAARC-AA is governed by an executive committee consisting of a President, Vice President, and general secretary, elected by member-country delegates at the biennial General Assembly. The presidency rotates between member countries every two years, and the association's public identity is refreshed to reflect the host country's colors during each term.",
+  execNames: {
+    president: 'Dr. Asad',
+    vicepresident: 'Dr. Asma',
+    generalsecretary: 'Dr. Sadhima Rasheed'
+  },
+  contactAddress: "Secretariat Office\n[Placeholder Address], [City], [Country]",
+  contactEmail: "secretariat@saarc-aa.org (placeholder)",
+  contactPhone: "+00 000 000 0000 (placeholder)"
+};
+
+let CONTENT = {};
+async function loadContent(){
+  const parsed = await fetchSetting('content', null);
+  if(parsed){
+    return Object.assign({}, DEFAULT_CONTENT, parsed, { execNames: Object.assign({}, DEFAULT_CONTENT.execNames, parsed.execNames||{}) });
+  }
+  return JSON.parse(JSON.stringify(DEFAULT_CONTENT));
+}
+async function saveContent(c){
+  CONTENT = c;
+  const ok = await upsertSetting('content', c);
+  renderRibbonAndFooter();
+  return ok;
+}
+
+const CATEGORY_LABELS = { current: 'Current Work', upcoming: 'Upcoming Conference', past: 'Past Conference', general: 'General News' };
+const PLACEHOLDER_COLORS = ['#0F6656','#2F7A93','#E8604A','#1B3F82','#54595C','#16856F'];
+
+/* =========================================================
+   COUNTRY THEMES — each SAARC member country gets a distinct
+   palette derived from its national colors, for the sitting
+   presidency to "refurbish" the site every two years.
+   ========================================================= */
+const MEMBER_COUNTRIES = [
+  {key:'afghanistan', name:'Afghanistan', flag:'🇦🇫'},
+  {key:'bangladesh',  name:'Bangladesh',  flag:'🇧🇩'},
+  {key:'bhutan',      name:'Bhutan',      flag:'🇧🇹'},
+  {key:'india',       name:'India',       flag:'🇮🇳'},
+  {key:'maldives',    name:'Maldives',    flag:'🇲🇻'},
+  {key:'nepal',       name:'Nepal',       flag:'🇳🇵'},
+  {key:'pakistan',    name:'Pakistan',    flag:'🇵🇰'},
+  {key:'srilanka',    name:'Sri Lanka',   flag:'🇱🇰'}
+];
+
+const DEFAULT_THEMES = {
+  standard:    { name:'Association Standard', flag:'🏛️', primary:'#0F6656', accent:'#E8604A', secondary:'#2F7A93', surface:'#F5F7F5', note:'Default SAARC-AA identity, used between presidencies.' },
+  afghanistan: { name:'Afghanistan',  flag:'🇦🇫', primary:'#222E27', accent:'#C22F45', secondary:'#3E8C66', surface:'#F2F3EF', note:"Palette drawn from Afghanistan's traditional black, red and green tricolor." },
+  bangladesh:  { name:'Bangladesh',   flag:'🇧🇩', primary:'#046B39', accent:'#E22A3E', secondary:'#2F9270', surface:'#EEF7F1', note:"Deep field green with the red disc of Bangladesh's national flag." },
+  bhutan:      { name:'Bhutan',       flag:'🇧🇹', primary:'#C1401F', accent:'#F0A83B', secondary:'#4A4A4A', surface:'#FCF6E8', note:"Saffron yellow and dragon-fire orange, drawn from Bhutan's flag — no brown, by design." },
+  india:       { name:'India',        flag:'🇮🇳', primary:'#1B3F82', accent:'#EA9215', secondary:'#128B4F', surface:'#F6F8F5', note:"Navy from the Ashoka Chakra, with saffron and green accents." },
+  maldives:    { name:'Maldives',     flag:'🇲🇻', primary:'#A31E36', accent:'#1D8A54', secondary:'#1F87A0', surface:'#F8F4EA', note:"Crimson field with the green box of the Maldivian flag." },
+  nepal:       { name:'Nepal',        flag:'🇳🇵', primary:'#A81D34', accent:'#2050B8', secondary:'#54595C', surface:'#F6F2EF', note:"Crimson with royal blue borders, echoing Nepal's pennant flag." },
+  pakistan:    { name:'Pakistan',     flag:'🇵🇰', primary:'#01471F', accent:'#E4B93C', secondary:'#1C8C57', surface:'#F5F8F4', note:"Official Pakistan green with a crisp gold-white accent." },
+  srilanka:    { name:'Sri Lanka',    flag:'🇱🇰', primary:'#84204A', accent:'#E0A93E', secondary:'#2E8A5C', surface:'#F8F3E6', note:"Maroon field with saffron and green, from Sri Lanka's lion flag." }
+};
+
+// THEMES starts as a copy of the defaults, then gets any saved admin
+// customizations merged on top of it in buildThemes() at init time.
+let THEMES = {};
+let themeOverridesCache = {}; // in-memory copy of the 'theme_overrides' setting, kept in sync with Supabase
+
+function cloneDefaultThemes(){ return JSON.parse(JSON.stringify(DEFAULT_THEMES)); }
+async function buildThemes(){
+  const base = cloneDefaultThemes();
+  themeOverridesCache = await fetchSetting('theme_overrides', {});
+  Object.keys(themeOverridesCache).forEach(key=>{
+    if(base[key]){ base[key] = Object.assign({}, base[key], themeOverridesCache[key]); }
+  });
+  return base;
+}
+function hasCustomOverride(key){
+  return !!themeOverridesCache[key];
+}
+async function saveThemeOverride(key, colors){
+  themeOverridesCache[key] = Object.assign({}, themeOverridesCache[key]||{}, colors);
+  THEMES[key] = Object.assign({}, THEMES[key], colors);
+  return await upsertSetting('theme_overrides', themeOverridesCache);
+}
+async function resetThemeOverride(key){
+  delete themeOverridesCache[key];
+  THEMES[key] = Object.assign({}, DEFAULT_THEMES[key]);
+  return await upsertSetting('theme_overrides', themeOverridesCache);
+}
+
+function shadeColor(hex, percent){
+  hex = hex.replace('#','');
+  let r = parseInt(hex.substring(0,2),16), g = parseInt(hex.substring(2,4),16), b = parseInt(hex.substring(4,6),16);
+  const adj = (c)=>{
+    const delta = percent>0 ? (255-c) : c;
+    return Math.min(255, Math.max(0, Math.round(c + (percent/100)*delta)));
+  };
+  r=adj(r); g=adj(g); b=adj(b);
+  return '#' + [r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+
+let currentThemeKey = 'standard';
+async function applyTheme(key, persist){
+  const t = THEMES[key] || THEMES.standard;
+  const root = document.documentElement.style;
+  root.setProperty('--primary', t.primary);
+  root.setProperty('--primary-light', shadeColor(t.primary, 22));
+  root.setProperty('--primary-dark', shadeColor(t.primary, -20));
+  root.setProperty('--accent', t.accent);
+  root.setProperty('--accent-soft', shadeColor(t.accent, 48));
+  root.setProperty('--secondary', t.secondary);
+  root.setProperty('--surface', t.surface);
+  currentThemeKey = key;
+  if(persist){ await upsertSetting('theme', { active: key }); }
+  renderRibbonAndFooter();
+}
+async function selectTheme(key){
+  await applyTheme(key, true);
+  render();
+}
+
+function renderRibbonAndFooter(){
+  const hostKey = currentThemeKey !== 'standard' ? currentThemeKey : null;
+  document.getElementById('ribbonRow').innerHTML =
+    `<span class="ribbon-label">Member Countries</span>` +
+    MEMBER_COUNTRIES.map(c => `<span class="ribbon-badge ${c.key===hostKey?'host':''}"><span class="flag">${c.flag}</span>${c.name}</span>`).join('');
+  document.getElementById('footerMembers').innerHTML =
+    `Member countries: ` + MEMBER_COUNTRIES.map(c=>`${c.flag} ${c.name}`).join(' · ');
+  const tagEl = document.getElementById('footerTagline');
+  if(tagEl){ tagEl.innerText = (CONTENT && CONTENT.footerTagline) || DEFAULT_CONTENT.footerTagline; }
+}
+
+/* =========================================================
+   THEME COLOR EDITOR — lets logged-in admins customize any
+   theme's four colors with a native color picker + hex input.
+   ========================================================= */
+let themeEditDraft = null; // {key, primary, accent, secondary, surface}
+
+function openThemeEditor(key, evt){
+  if(evt) evt.stopPropagation();
+  const t = THEMES[key];
+  themeEditDraft = { key, primary:t.primary, accent:t.accent, secondary:t.secondary, surface:t.surface };
+  renderThemeEditorModal();
+}
+
+function renderThemeEditorModal(){
+  const d = themeEditDraft;
+  const holder = document.getElementById('themeEditorModal');
+  if(!holder) return;
+  if(!d){ holder.innerHTML = ''; return; }
+  const t = THEMES[d.key];
+  const fields = [['primary','Primary'],['accent','Accent'],['secondary','Secondary'],['surface','Background (Surface)']];
+  holder.innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(22,36,31,0.55);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto;z-index:110;">
+      <div class="card-panel" style="max-width:420px;width:100%;background:#fff;">
+        <h3>${t.flag} Edit ${esc(t.name)} Colors</h3>
+        <p style="font-size:12.5px;color:var(--ink-soft);margin-top:-8px;">
+          ${d.key===currentThemeKey ? "This theme is currently active, so you'll see changes on the site live as you pick." : "This theme isn't active right now — changes will apply next time it's selected."}
+        </p>
+        ${fields.map(([field,label])=>`
+          <div class="field">
+            <label>${label}</label>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input type="color" id="edit_color_${field}" value="${d[field]}"
+                oninput="onThemeColorPick('${field}', this.value)"
+                style="width:46px;height:38px;padding:2px;border:1px solid var(--line);border-radius:8px;flex-shrink:0;">
+              <input type="text" id="edit_hex_${field}" value="${d[field].toUpperCase()}"
+                oninput="onThemeHexType('${field}', this.value)"
+                style="flex:1;font-family:var(--mono);text-transform:uppercase;">
+            </div>
+          </div>
+        `).join('')}
+        <div style="display:flex;gap:10px;justify-content:space-between;margin-top:8px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-outline btn-sm" onclick="resetThemeEdit()">Reset to Default</button>
+          <div style="display:flex;gap:8px;">
+            <button type="button" class="btn btn-outline" onclick="cancelThemeEdit()">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="saveThemeEdit()">Save &amp; Close</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function livePreviewThemeField(field, val){
+  if(!themeEditDraft || themeEditDraft.key !== currentThemeKey) return;
+  const root = document.documentElement.style;
+  if(field==='primary'){
+    root.setProperty('--primary', val);
+    root.setProperty('--primary-light', shadeColor(val, 22));
+    root.setProperty('--primary-dark', shadeColor(val, -20));
+  } else if(field==='accent'){
+    root.setProperty('--accent', val);
+    root.setProperty('--accent-soft', shadeColor(val, 48));
+  } else if(field==='secondary'){
+    root.setProperty('--secondary', val);
+  } else if(field==='surface'){
+    root.setProperty('--surface', val);
+  }
+}
+function onThemeColorPick(field, val){
+  themeEditDraft[field] = val;
+  const hexEl = document.getElementById('edit_hex_'+field);
+  if(hexEl) hexEl.value = val.toUpperCase();
+  livePreviewThemeField(field, val);
+}
+function onThemeHexType(field, val){
+  if(/^#[0-9A-Fa-f]{6}$/.test(val)){
+    themeEditDraft[field] = val;
+    const colorEl = document.getElementById('edit_color_'+field);
+    if(colorEl) colorEl.value = val;
+    livePreviewThemeField(field, val);
+  }
+}
+function cancelThemeEdit(){
+  if(themeEditDraft && themeEditDraft.key === currentThemeKey){
+    applyTheme(currentThemeKey, false); // revert any unsaved live preview
+  }
+  themeEditDraft = null;
+  renderThemeEditorModal();
+}
+async function saveThemeEdit(){
+  if(!themeEditDraft) return;
+  const { key, primary, accent, secondary, surface } = themeEditDraft;
+  await saveThemeOverride(key, { primary, accent, secondary, surface });
+  if(key === currentThemeKey){ await applyTheme(key, true); }
+  themeEditDraft = null;
+  render();
+}
+async function resetThemeEdit(){
+  if(!themeEditDraft) return;
+  const key = themeEditDraft.key;
+  await resetThemeOverride(key);
+  if(key === currentThemeKey){ await applyTheme(key, true); }
+  themeEditDraft = null;
+  render();
+}
+
+/* =========================================================
+   SITE CONTENT EDITOR — lets admins rewrite the hero text,
+   About page, executive committee names, contact details,
+   and footer tagline without touching any code.
+   ========================================================= */
+let contentDraft = null;
+
+function openContentEditor(){
+  contentDraft = JSON.parse(JSON.stringify(CONTENT));
+  renderContentEditorModal();
+}
+function closeContentEditor(){
+  contentDraft = null;
+  const el = document.getElementById('contentEditorModal');
+  if(el) el.innerHTML = '';
+}
+function updateContentField(field, val){ contentDraft[field] = val; }
+function updateExecName(role, val){ contentDraft.execNames[role] = val; }
+
+function renderContentEditorModal(){
+  const holder = document.getElementById('contentEditorModal');
+  if(!holder) return;
+  const d = contentDraft;
+  if(!d){ holder.innerHTML = ''; return; }
+  holder.innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(22,36,31,0.55);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto;z-index:110;">
+      <div class="card-panel" style="max-width:620px;width:100%;background:#fff;">
+        <h3>Edit Site Content</h3>
+        <p style="font-size:12.5px;color:var(--ink-soft);margin-top:-8px;">Changes apply across the site as soon as you save.</p>
+
+        <h4 style="font-size:14px;margin-top:20px;">Home Page</h4>
+        <div class="field"><label>Hero Headline</label><input type="text" value="${esc(d.heroHeadline)}" oninput="updateContentField('heroHeadline', this.value)"></div>
+        <div class="field"><label>Hero Subtext</label><textarea oninput="updateContentField('heroLede', this.value)">${esc(d.heroLede)}</textarea></div>
+
+        <h4 style="font-size:14px;margin-top:20px;">About Page</h4>
+        <div class="field"><label>Introduction Paragraph</label><textarea oninput="updateContentField('aboutIntro', this.value)">${esc(d.aboutIntro)}</textarea></div>
+        <div class="field"><label>Governance Paragraph</label><textarea oninput="updateContentField('aboutGovernance', this.value)">${esc(d.aboutGovernance)}</textarea></div>
+
+        <h4 style="font-size:14px;margin-top:20px;">Executive Committee Names</h4>
+        <div class="field"><label>President</label><input type="text" value="${esc(d.execNames.president)}" oninput="updateExecName('president', this.value)"></div>
+        <div class="field"><label>Vice President</label><input type="text" value="${esc(d.execNames.vicepresident)}" oninput="updateExecName('vicepresident', this.value)"></div>
+        <div class="field"><label>general secretary</label><input type="text" value="${esc(d.execNames.generalsecretary)}" oninput="updateExecName('generalsecretary', this.value)"></div>
+
+        <h4 style="font-size:14px;margin-top:20px;">Contact Page</h4>
+        <div class="field"><label>Address</label><textarea oninput="updateContentField('contactAddress', this.value)">${esc(d.contactAddress)}</textarea></div>
+        <div class="field-row">
+          <div class="field"><label>Email</label><input type="text" value="${esc(d.contactEmail)}" oninput="updateContentField('contactEmail', this.value)"></div>
+          <div class="field"><label>Phone</label><input type="text" value="${esc(d.contactPhone)}" oninput="updateContentField('contactPhone', this.value)"></div>
+        </div>
+
+        <h4 style="font-size:14px;margin-top:20px;">Footer</h4>
+        <div class="field"><label>Footer Tagline</label><input type="text" value="${esc(d.footerTagline)}" oninput="updateContentField('footerTagline', this.value)"></div>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+          <button type="button" class="btn btn-outline" onclick="closeContentEditor()">Cancel</button>
+          <button type="button" class="btn btn-primary" onclick="saveContentEdit()">Save Changes</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function saveContentEdit(){
+  if(!contentDraft) return;
+  await saveContent(contentDraft);
+  if(session && CONTENT.execNames[session.username]){
+    session.name = CONTENT.execNames[session.username];
+  }
+  contentDraft = null;
+  render();
+}
+
+/* =========================================================
+   POSTS DATA
+   ========================================================= */
+function seedPosts(){
+  return [
+    { id:'p1', category:'current', type:'text', author:'generalsecretary',
+      title:'Regional Guidelines on Perioperative Airway Management Under Review', date:'2026-08-10',
+      content:"The SAARC-AA Guidelines Committee, representing anesthesiology societies from all eight member countries, has begun its triennial review of the Regional Perioperative Airway Management Guidelines. The revised guidelines will incorporate recent evidence on videolaryngoscopy in resource-limited settings and updated difficult-airway algorithms suited to district and tertiary hospitals across the region.\n\nA working draft is expected to circulate to national member societies for comment by November 2026, with the final document to be ratified at the next General Assembly." },
+    { id:'p2', category:'upcoming', type:'gallery', author:'president',
+      title:'12th SAARC-AA Regional Congress — Colombo, February 2027', date:'2026-08-05',
+      content:"Registration is now open for the 12th SAARC-AA Regional Congress, to be hosted in Colombo, Sri Lanka from 18–21 February 2027. The scientific programme will focus on obstetric anesthesia, regional blocks for orthopedic trauma, and critical care in the perioperative period. Early-bird registration closes 30 November 2026.",
+      images:[ {caption:'Congress venue — BMICH, Colombo'}, {caption:'Opening ceremony hall, 2024 congress'}, {caption:'Workshop on ultrasound-guided regional blocks'}, {caption:'Delegates networking session'} ] },
+    { id:'p3', category:'upcoming', type:'text', author:'vicepresident',
+      title:'Call for Abstracts: Pediatric Anesthesia Workshop, Kathmandu', date:'2026-07-28',
+      content:"SAARC-AA, in partnership with the Society of Anesthesiologists of Nepal, invites abstract submissions for the Regional Pediatric Anesthesia Workshop scheduled for 10–11 April 2027 in Kathmandu. Topics include neonatal airway management, safe sedation practices, and perioperative fluid management in children. Abstracts should be submitted by 15 January 2027." },
+    { id:'p4', category:'past', type:'gallery', author:'generalsecretary',
+      title:'11th SAARC-AA Regional Congress — Dhaka, 2024: A Recap', date:'2024-03-02',
+      content:"Over 640 delegates from all eight member nations gathered in Dhaka for the 11th Regional Congress, the largest SAARC-AA gathering to date. The three-day scientific programme featured 48 podium presentations and 90 poster sessions, alongside hands-on workshops in point-of-care ultrasound and difficult airway simulation.",
+      images:[ {caption:'Inaugural session, Dhaka 2024'}, {caption:'Poster presentation hall'}, {caption:'Airway simulation workshop'}, {caption:'Closing ceremony and awards'}, {caption:'Delegates from Bhutan and Maldives chapters'}, {caption:'Panel on regional anesthesia in trauma'} ] },
+    { id:'p5', category:'past', type:'table', author:'president',
+      title:'2026 Regional Workshop Series — Attendance Summary', date:'2026-06-20',
+      content:"A summary of attendance across the four national workshops held under the 2026 Continuing Medical Education series.",
+      tableHeaders:['Workshop','Host City','Date','Attendees'],
+      tableRows:[
+        ['Regional Anesthesia Techniques','Karachi, Pakistan','12 Feb 2026','88'],
+        ['Obstetric Anesthesia Update','New Delhi, India','9 Apr 2026','142'],
+        ['Critical Care Essentials','Male, Maldives','21 May 2026','54'],
+        ['Pain Medicine Symposium','Thimphu, Bhutan','15 Jun 2026','61']
+      ] },
+    { id:'p6', category:'current', type:'text', author:'vicepresident',
+      title:'Fellowship Exchange Programme Now Accepting Applications', date:'2026-08-18',
+      content:"The SAARC-AA Fellowship Exchange Programme, which places early-career anesthesiologists in six-week clinical rotations at partner institutions across member countries, is now accepting applications for its 2027 cohort. The programme prioritizes subspecialty exposure in cardiac anesthesia, pain medicine, and critical care that may be limited in a fellow's home country." }
+  ];
+}
+
+async function loadPosts(){
+  const fetched = await fetchSetting('posts', null);
+  if(fetched) return fetched;
+  // No 'posts' row yet (e.g. the SQL setup script wasn't run with seed data).
+  // Use built-in placeholders for this session; an admin's first save will
+  // create the row properly once they're logged in.
+  return seedPosts();
+}
+async function savePosts(posts){ return await upsertSetting('posts', posts); }
+
+/* =========================================================
+   STATE + ROUTER
+   ========================================================= */
+let POSTS = [];
+let VISIT_COUNT = 0;
+let session = null;
+let formDraft = null;
+
+function navigate(route){ window.location.hash = route; }
+window.addEventListener('hashchange', render);
+
+function currentRoute(){
+  const h = window.location.hash.replace('#/','').replace('#','');
+  return h || 'home';
+}
+function esc(str){
+  const d = document.createElement('div');
+  d.innerText = (str===undefined||str===null) ? '' : String(str);
+  return d.innerHTML;
+}
+function fmtDate(iso){
+  try{ return new Date(iso+'T00:00:00').toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}); }
+  catch(e){ return iso; }
+}
+function excerpt(text, n){
+  const t = text.replace(/\n+/g,' ');
+  return t.length > n ? t.slice(0,n).trim()+'…' : t;
+}
+function colorFor(seedStr){
+  let h=0; for(let i=0;i<seedStr.length;i++){ h = (h*31 + seedStr.charCodeAt(i)) % PLACEHOLDER_COLORS.length; }
+  return PLACEHOLDER_COLORS[Math.abs(h)];
+}
+
+/* =========================================================
+   NAV BAR
+   ========================================================= */
+function renderNav(){
+  const route = currentRoute();
+  const links = [['home','Home'],['current-work','Current Work'],['conferences','Conferences'],['about','About'],['contact','Contact']];
+  let html = links.map(([r,label])=>`<button class="navlink ${route===r?'active':''}" onclick="navigate('${r}')">${label}</button>`).join('');
+  if(session){
+    html += `<button class="navlink ${route==='admin'?'active':''}" onclick="navigate('admin')">Dashboard</button>`;
+    html += `<button class="navlink" onclick="logout()">Log Out</button>`;
+  } else {
+    html += `<button class="navlink btn-login ${route==='login'?'active':''}" onclick="navigate('login')">Admin Login</button>`;
+  }
+  document.getElementById('mainNav').innerHTML = html;
+}
+async function logout(){ await supabase.auth.signOut(); session = null; navigate('home'); }
+
+/* =========================================================
+   PAGE: HOME
+   ========================================================= */
+function pageHome(){
+  const upcoming = POSTS.filter(p=>p.category==='upcoming').slice(0,1)[0];
+  const recent = [...POSTS].sort((a,b)=> new Date(b.date)-new Date(a.date)).slice(0,5);
+  const t = THEMES[currentThemeKey];
+  return `
+    <div class="hero">
+      <div class="hero-inner">
+        <div>
+          <div class="eyebrow">${currentThemeKey==='standard' ? 'South Asian Association of Anesthesiologists' : `${t.flag} Presidency Theme — ${t.name}`}</div>
+          <h1>${esc(CONTENT.heroHeadline)}</h1>
+          <p class="lede">${esc(CONTENT.heroLede)}</p>
+          <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;">
+            <a class="btn btn-primary" href="#/conferences" onclick="navigate('conferences');return false;">View Conferences</a>
+            <a class="btn" style="background:transparent;border:1px solid rgba(255,255,255,0.4);color:#fff;" href="#/about" onclick="navigate('about');return false;">About the Association</a>
+          </div>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-card"><div class="num">8</div><div class="lbl">Member Countries</div></div>
+          <div class="stat-card"><div class="num">1987</div><div class="lbl">Founded</div></div>
+          <div class="stat-card"><div class="num">3,200+</div><div class="lbl">Affiliated Members</div></div>
+          <div class="stat-card"><div class="num">11</div><div class="lbl">Regional Congresses Held</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="wrap section">
+      <div class="tri-grid">
+        <div class="info-card"><span class="tag">Current Work</span><h3>Guideline reviews &amp; fellowships</h3><p>Ongoing committee work, clinical guidelines, and training programmes across the region.</p></div>
+        <div class="info-card"><span class="tag" style="background:var(--accent-soft);color:var(--primary-dark);">Upcoming</span><h3>${upcoming ? esc(upcoming.title) : 'Conferences & workshops'}</h3><p>${upcoming ? esc(excerpt(upcoming.content,90)) : 'Details on the next regional congress and workshops.'}</p></div>
+        <div class="info-card"><span class="tag" style="background:#E7E7E9;color:#4B4B52;">Past</span><h3>Congress archive</h3><p>Recaps, photos, and attendance records from previous SAARC-AA events.</p></div>
+      </div>
+    </div>
+    <div class="wrap section" style="padding-top:0;">
+      <div class="section-head"><h2>Latest Updates</h2><a class="see-all" href="#/current-work" onclick="navigate('current-work');return false;">See all →</a></div>
+      <div class="post-list">${recent.map(postCardHtml).join('') || emptyState('No posts yet.')}</div>
+    </div>
+  `;
+}
+function postCardHtml(p){
+  const typeLabel = p.type==='gallery' ? '◇ Gallery' : p.type==='table' ? '▦ Table' : '¶ Article';
+  return `
+    <div class="post-card" onclick="navigate('post-${p.id}')">
+      <div class="post-meta"><span class="pill ${p.category}">${esc(CATEGORY_LABELS[p.category])}</span><span>${fmtDate(p.date)}</span><span class="type-icon">${typeLabel}</span></div>
+      <h3>${esc(p.title)}</h3>
+      <p class="post-excerpt">${esc(excerpt(p.content,160))}</p>
+    </div>`;
+}
+function emptyState(msg){ return `<div class="empty-state">${esc(msg)}</div>`; }
+
+function pageCurrentWork(){
+  const posts = POSTS.filter(p=>p.category==='current' || p.category==='general').sort((a,b)=> new Date(b.date)-new Date(a.date));
+  return `<div class="wrap section"><h2>Current Work</h2>
+    <p style="color:var(--ink-soft);max-width:640px;">Ongoing committee initiatives, guideline reviews, fellowship programmes, and general announcements from SAARC-AA leadership.</p>
+    <div class="post-list" style="margin-top:22px;">${posts.map(postCardHtml).join('') || emptyState('No current updates yet.')}</div></div>`;
+}
+
+let confTab = 'upcoming';
+function pageConferences(){
+  const posts = POSTS.filter(p=>p.category===confTab).sort((a,b)=> new Date(b.date)-new Date(a.date));
+  return `<div class="wrap section"><h2>Conferences &amp; Workshops</h2>
+    <div class="tab-row">
+      <button class="tab-btn ${confTab==='upcoming'?'active':''}" onclick="confTab='upcoming';render();">Upcoming</button>
+      <button class="tab-btn ${confTab==='past'?'active':''}" onclick="confTab='past';render();">Past</button>
+    </div>
+    <div class="post-list">${posts.map(postCardHtml).join('') || emptyState(`No ${confTab} conferences posted yet.`)}</div></div>`;
+}
+
+function pageAbout(){
+  return `<div class="wrap section"><h2>About SAARC-AA</h2>
+    <div class="card-panel" style="max-width:760px;">
+      <p>${esc(CONTENT.aboutIntro)}</p>
+      <p>${esc(CONTENT.aboutGovernance)}</p>
+      <h3 style="margin-top:22px;">Executive Committee</h3>
+      <ul style="padding-left:20px;color:var(--ink-soft);">
+        <li><strong style="color:var(--ink);">President</strong> — ${esc(CONTENT.execNames.president)}</li>
+        <li><strong style="color:var(--ink);">Vice President</strong> — ${esc(CONTENT.execNames.vicepresident)}</li>
+        <li><strong style="color:var(--ink);">general secretary</strong> — ${esc(CONTENT.execNames.generalsecretary)}</li>
+      </ul>
+    </div></div>`;
+}
+function pageContact(){
+  return `<div class="wrap section"><h2>Contact</h2>
+    <div class="card-panel" style="max-width:560px;">
+      <p><strong>SAARC Anesthesiologists' Association</strong><br>${esc(CONTENT.contactAddress).replace(/\n/g,'<br>')}</p>
+      <p>Email: ${esc(CONTENT.contactEmail)}<br>Phone: ${esc(CONTENT.contactPhone)}</p>
+    </div></div>`;
+}
+
+function pagePostDetail(id){
+  const p = POSTS.find(x=>x.id===id);
+  if(!p) return `<div class="wrap section">${emptyState('Post not found.')}</div>`;
+  let body = `<div class="wrap section" style="max-width:760px;">
+      <a class="breadcrumb" href="#/home" onclick="navigate('home');return false;">← Back</a>
+      <div class="post-meta" style="margin-bottom:10px;"><span class="pill ${p.category}">${esc(CATEGORY_LABELS[p.category])}</span><span>${fmtDate(p.date)}</span></div>
+      <h1>${esc(p.title)}</h1>
+      <div style="white-space:pre-line;color:var(--ink-soft);font-size:15.5px;">${esc(p.content)}</div>`;
+  if(p.type==='gallery' && p.images && p.images.length){
+    const hasRealPhotos = p.images.some(img=>img.url);
+    body += `<div class="gallery-grid">` + p.images.map(img=>{
+      if(img.url){
+        return `<div class="gallery-tile" style="background-image:url('${esc(img.url)}');background-size:cover;background-position:center;">${img.caption ? `<span class="cap">${esc(img.caption)}</span>` : ''}</div>`;
+      }
+      const c = colorFor(img.caption||'x');
+      return `<div class="gallery-tile" style="background:${c};"><span class="ph-icon">🖼</span><span class="cap">${esc(img.caption||'Untitled image')}</span></div>`;
+    }).join('') + `</div>` + (hasRealPhotos ? '' : `<p style="font-size:12px;color:var(--ink-soft);">Placeholder gallery — real photographs can be uploaded from the admin dashboard.</p>`);
+  }
+  if(p.type==='table' && p.tableHeaders){
+    body += `<table class="data-table"><thead><tr>${p.tableHeaders.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>`
+      + p.tableRows.map(row=>`<tr>${row.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('') + `</tbody></table>`;
+  }
+  body += `</div>`;
+  return body;
+}
+
+/* =========================================================
+   LOGIN
+   ========================================================= */
+let loginError = '';
+// These just need to match whatever emails you actually create in
+// Supabase Authentication — used only to prefill the email field for
+// convenience during testing. They're not secrets and don't grant access.
+const ADMIN_EMAILS = {
+  president: 'president@saarc-aa.org',
+  vicepresident: 'vp@saarc-aa.org',
+  generalsecretary: 'gensec@saarc-aa.org'
+};
+
+function pageLogin(){
+  return `<div class="wrap section"><div class="card-panel narrow">
+    <h2 style="text-align:center;">Admin Login</h2>
+    <p style="text-align:center;font-size:13px;color:var(--ink-soft);">For the President, Vice President, and general secretary.</p>
+    ${loginError ? `<div class="alert alert-error">${esc(loginError)}</div>` : ''}
+
+    <div class="field" style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;">
+      <label style="margin-bottom:8px;">Quick Fill <span style="font-weight:400;text-transform:none;letter-spacing:0;">(testing only)</span></label>
+      <div style="display:flex;flex-direction:column;gap:7px;font-size:13.5px;color:var(--ink);">
+        <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer;">
+          <input type="radio" name="quickLogin" value="manual" checked onchange="applyQuickLogin(this.value)"> Manual entry
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer;">
+          <input type="radio" name="quickLogin" value="president" onchange="applyQuickLogin(this.value)"> President
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer;">
+          <input type="radio" name="quickLogin" value="vicepresident" onchange="applyQuickLogin(this.value)"> Vice President
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer;">
+          <input type="radio" name="quickLogin" value="generalsecretary" onchange="applyQuickLogin(this.value)"> general secretary
+        </label>
+      </div>
+      <div class="field-hint">Fills in the email field only — passwords are real now (set in Supabase), so you'll still need to type yours.</div>
+    </div>
+
+    <form onsubmit="handleLogin(event)">
+      <div class="field"><label>Email</label><input type="email" id="loginUser" autocomplete="username" placeholder="e.g. president@saarc-aa.org"></div>
+      <div class="field">
+        <label>Password</label>
+        <div style="position:relative;">
+          <input type="password" id="loginPass" autocomplete="current-password" style="padding-right:56px;">
+          <button type="button" onclick="togglePasswordVisibility(this)" style="position:absolute;right:5px;top:5px;bottom:5px;background:var(--surface);border:1px solid var(--line);border-radius:6px;color:var(--ink-soft);font-size:12px;font-weight:600;padding:0 10px;">Show</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;" type="submit">Log In</button>
+    </form>
+  </div></div>`;
+}
+function togglePasswordVisibility(btn){
+  const el = document.getElementById('loginPass');
+  if(!el) return;
+  if(el.type === 'password'){ el.type = 'text'; btn.textContent = 'Hide'; }
+  else { el.type = 'password'; btn.textContent = 'Show'; }
+}
+function applyQuickLogin(value){
+  const userEl = document.getElementById('loginUser');
+  const passEl = document.getElementById('loginPass');
+  if(!userEl || !passEl) return;
+  if(value === 'manual'){ userEl.value = ''; }
+  else { userEl.value = ADMIN_EMAILS[value] || ''; }
+  passEl.value = '';
+}
+async function handleLogin(e){
+  e.preventDefault();
+  const email = document.getElementById('loginUser').value.trim().toLowerCase();
+  const password = document.getElementById('loginPass').value;
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  if(submitBtn){ submitBtn.disabled = true; submitBtn.textContent = 'Logging in…'; }
+
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if(error || !data.user){
+    loginError = 'Incorrect email or password.';
+    render();
+    return;
+  }
+
+  const { data: roleRow, error: roleError } = await supabase
+    .from('admin_roles')
+    .select('admin_key')
+    .eq('email', email)
+    .maybeSingle();
+
+  const adminKey = roleRow && roleRow.admin_key;
+  if(roleError || !adminKey || !ROLE_LABELS[adminKey]){
+    loginError = "This account isn't set up as a SAARC-AA admin — check the admin_roles table in Supabase.";
+    await supabase.auth.signOut();
+    render();
+    return;
+  }
+  session = { username: adminKey, name: CONTENT.execNames[adminKey] || email, role: ROLE_LABELS[adminKey] };
+  loginError = '';
+  navigate('admin');
+}
+
+/* =========================================================
+   ADMIN DASHBOARD
+   ========================================================= */
+function pageAdmin(){
+  if(!session){ return pageLogin(); }
+  const sorted = [...POSTS].sort((a,b)=> new Date(b.date)-new Date(a.date));
+  return `
+    <div class="wrap section">
+      <div class="admin-top">
+        <div><h2 style="margin-bottom:2px;">Admin Dashboard</h2>
+        <div class="admin-badge">Signed in as <strong>${esc(session.name)}</strong> — ${esc(session.role)}</div></div>
+        <button class="btn btn-primary" onclick="openPostForm()">+ New Post</button>
+      </div>
+
+      <div class="counter-card">
+        <div><div class="lbl">Total Website Visits</div><div class="num">${VISIT_COUNT.toLocaleString()}</div></div>
+        <div style="font-size:12.5px;color:#CBD9D2;max-width:300px;text-align:right;">Counted across every visitor now that the site runs on a shared Supabase database.</div>
+      </div>
+
+      <div class="storage-meter">
+        <span>Data is stored in Supabase — <strong>shared with every visitor</strong>, not just this browser.</span>
+        <span style="color:var(--ink-soft);">Free-tier Supabase projects include 1 GB of file storage for photos — plenty for a while.</span>
+      </div>
+
+      <h3 style="margin-bottom:6px;">Site Theme</h3>
+      <p style="font-size:13px;color:var(--ink-soft);margin-bottom:0;">When the presidency changes countries, refurbish the site's look here. Selecting a theme applies and saves it immediately for all future visits in this browser.</p>
+      <div class="theme-grid">
+        ${Object.entries(THEMES).map(([key,t])=>`
+          <div class="theme-card ${currentThemeKey===key?'active-theme':''}" onclick="selectTheme('${key}')">
+            <div class="theme-card-top">
+              <div class="swatches">
+                <span class="swatch" style="background:${t.primary};" title="Primary"></span>
+                <span class="swatch" style="background:${t.accent};" title="Accent"></span>
+                <span class="swatch" style="background:${t.secondary};" title="Secondary"></span>
+                <span class="swatch" style="background:${t.surface};" title="Background"></span>
+              </div>
+              <button type="button" class="icon-edit-btn" title="Edit colors" onclick="openThemeEditor('${key}', event)">✎</button>
+            </div>
+            <h4>${t.flag} ${esc(t.name)}
+              ${currentThemeKey===key ? '<span class="active-inline-tag">Active</span>' : ''}
+              ${hasCustomOverride(key) ? '<span class="custom-inline-tag">Custom</span>' : ''}
+            </h4>
+            <div class="flagline">${esc(t.note)}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div id="themeEditorModal"></div>
+
+      <div class="admin-top" style="margin:30px 0 6px 0;">
+        <div><h3 style="margin-bottom:2px;">Page Content</h3>
+        <p style="font-size:13px;color:var(--ink-soft);margin-bottom:0;">Edit the home page intro, About page, executive committee names, contact details, and footer text — no code required.</p></div>
+        <button class="btn btn-outline" onclick="openContentEditor()">Edit Site Content</button>
+      </div>
+      <div id="contentEditorModal"></div>
+
+      <h3 style="margin:30px 0 10px 0;">All Posts (${sorted.length})</h3>
+      <div class="card-panel">
+        ${sorted.map(p=>`
+          <div class="admin-post-row">
+            <div class="info">
+              <div><strong>${esc(p.title)}</strong> <span class="pill ${p.category}" style="margin-left:6px;">${esc(CATEGORY_LABELS[p.category])}</span></div>
+              <small>${fmtDate(p.date)} · ${esc(p.type)} · by ${esc(CONTENT.execNames[p.author] || p.author)}${ROLE_LABELS[p.author] ? ' — ' + esc(ROLE_LABELS[p.author]) : ''}</small>
+            </div>
+            <div style="display:flex;gap:8px;flex-shrink:0;">
+              <button class="btn btn-outline btn-sm" onclick="navigate('post-${p.id}')">View</button>
+              <button class="btn btn-outline btn-sm" onclick="openPostForm('${p.id}')">Edit</button>
+              <button class="btn btn-danger btn-sm" onclick="deletePost('${p.id}')">Delete</button>
+            </div>
+          </div>
+        `).join('') || emptyState('No posts yet — create the first one.')}
+      </div>
+    </div>
+    <div id="postFormModal"></div>
+  `;
+}
+async function deletePost(id){
+  if(!confirm('Delete this post? This cannot be undone.')) return;
+  POSTS = POSTS.filter(p=>p.id!==id);
+  await savePosts(POSTS);
+  render();
+}
+
+/* =========================================================
+   POST FORM
+   ========================================================= */
+function openPostForm(id){
+  const existing = id ? POSTS.find(p=>p.id===id) : null;
+  formDraft = existing ? JSON.parse(JSON.stringify(existing)) : {
+    id: 'p'+Date.now(), category:'current', type:'text', author: session.username,
+    title:'', date: new Date().toISOString().slice(0,10), content:'',
+    images:[], tableHeaders:['Column 1','Column 2'], tableRows:[['','']]
+  };
+  renderPostFormModal();
+}
+function closePostForm(){ formDraft = null; document.getElementById('postFormModal').innerHTML = ''; }
+
+function renderPostFormModal(){
+  const d = formDraft;
+  if(!d) return;
+  const isEdit = POSTS.some(p=>p.id===d.id);
+  let typeSpecific = '';
+  if(d.type==='gallery'){
+    typeSpecific = `<div class="field"><label>Gallery Images</label>
+      <div id="galleryEditorRows">${d.images.map((img,i)=>`
+        <div class="gallery-upload-row">
+          <div class="gallery-thumb" style="${img.url ? `background-image:url('${esc(img.url)}');background-size:cover;background-position:center;` : ''}">
+            ${img.uploading ? '<span>Uploading…</span>' : (img.url ? '' : '<span>No photo</span>')}
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+            <input type="text" value="${esc(img.caption)}" placeholder="Image caption" oninput="updateGalleryCaption(${i}, this.value)">
+            <label class="file-upload-btn">
+              ${img.uploading ? 'Uploading…' : (img.url ? 'Replace photo' : 'Upload photo')}
+              <input type="file" accept="image/*" style="display:none;" ${img.uploading ? 'disabled' : ''} onchange="handleGalleryFileSelect(${i}, this.files[0])">
+            </label>
+          </div>
+          <button type="button" class="icon-btn" onclick="removeGalleryImage(${i})" title="Remove">✕</button>
+        </div>`).join('')}</div>
+      <button type="button" class="btn btn-outline btn-sm" onclick="addGalleryImage()">+ Add image</button>
+      <div class="field-hint">Photos are resized, compressed, and uploaded to Supabase Storage — visible to every visitor, not just this browser.</div></div>`;
+  } else if(d.type==='table'){
+    typeSpecific = `<div class="field"><label>Table Columns</label>
+      <div class="gallery-editor-row">${d.tableHeaders.map((h,i)=>`<input type="text" value="${esc(h)}" placeholder="Column ${i+1}" oninput="updateHeader(${i}, this.value)">`).join('')}
+      <button type="button" class="btn btn-outline btn-sm" onclick="addColumn()">+ Col</button></div>
+      <label style="margin-top:12px;">Table Rows</label>
+      <div id="tableRowsEditor">${d.tableRows.map((row,ri)=>`
+        <div class="table-row-editor">${row.map((cell,ci)=>`<input type="text" value="${esc(cell)}" oninput="updateCell(${ri},${ci},this.value)">`).join('')}
+        <button type="button" class="icon-btn" onclick="removeRow(${ri})">✕</button></div>`).join('')}</div>
+      <button type="button" class="btn btn-outline btn-sm" onclick="addRow()">+ Add row</button></div>`;
+  }
+  document.getElementById('postFormModal').innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(22,36,31,0.55);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto;z-index:100;">
+      <div class="card-panel" style="max-width:600px;width:100%;background:#fff;">
+        <h3>${isEdit ? 'Edit Post' : 'New Post'}</h3>
+        <form onsubmit="submitPostForm(event)">
+          <div class="field"><label>Title</label><input type="text" id="f_title" value="${esc(d.title)}" required></div>
+          <div class="field-row">
+            <div class="field"><label>Category</label><select id="f_category" onchange="formDraft.category=this.value">
+              ${Object.entries(CATEGORY_LABELS).map(([k,v])=>`<option value="${k}" ${d.category===k?'selected':''}>${v}</option>`).join('')}
+            </select></div>
+            <div class="field"><label>Post Type</label><select id="f_type" onchange="changePostType(this.value)">
+              <option value="text" ${d.type==='text'?'selected':''}>Text Article</option>
+              <option value="gallery" ${d.type==='gallery'?'selected':''}>Image Gallery</option>
+              <option value="table" ${d.type==='table'?'selected':''}>Table</option>
+            </select></div>
+          </div>
+          <div class="field"><label>Date</label><input type="date" id="f_date" value="${esc(d.date)}"></div>
+          <div class="field"><label>Body Text</label><textarea id="f_content" placeholder="Write the article text or a description...">${esc(d.content)}</textarea></div>
+          ${typeSpecific}
+          <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+            <button type="button" class="btn btn-outline" onclick="closePostForm()">Cancel</button>
+            <button type="submit" class="btn btn-primary">${isEdit ? 'Save Changes' : 'Publish Post'}</button>
+          </div>
+        </form>
+      </div>
+    </div>`;
+}
+function changePostType(t){
+  formDraft.type = t;
+  if(t==='gallery' && (!formDraft.images || !formDraft.images.length)) formDraft.images=[{caption:''}];
+  if(t==='table' && (!formDraft.tableHeaders || !formDraft.tableHeaders.length)){ formDraft.tableHeaders=['Column 1','Column 2']; formDraft.tableRows=[['','']]; }
+  renderPostFormModal();
+}
+function addGalleryImage(){ formDraft.images.push({caption:''}); renderPostFormModal(); }
+function removeGalleryImage(i){ formDraft.images.splice(i,1); renderPostFormModal(); }
+function updateGalleryCaption(i,val){ formDraft.images[i].caption = val; }
+
+/* Reads a chosen photo, downsizes it to a sane max dimension, re-encodes
+   it as a compressed JPEG, and uploads it to the 'post-images' bucket in
+   Supabase Storage — so photos are real shared files, not embedded text. */
+const GALLERY_MAX_DIMENSION = 1280;
+const GALLERY_JPEG_QUALITY = 0.82;
+function handleGalleryFileSelect(index, file){
+  if(!file) return;
+  if(!file.type || !file.type.startsWith('image/')){
+    alert('Please choose an image file.');
+    return;
+  }
+  formDraft.images[index].uploading = true;
+  renderPostFormModal();
+
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const img = new Image();
+    img.onload = async function(){
+      let w = img.width, h = img.height;
+      if(w > GALLERY_MAX_DIMENSION || h > GALLERY_MAX_DIMENSION){
+        if(w >= h){ h = Math.round(h * (GALLERY_MAX_DIMENSION / w)); w = GALLERY_MAX_DIMENSION; }
+        else { w = Math.round(w * (GALLERY_MAX_DIMENSION / h)); h = GALLERY_MAX_DIMENSION; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+
+      canvas.toBlob(async function(blob){
+        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2,8)}.jpg`;
+        const { error: uploadError } = await supabase.storage.from('post-images').upload(fileName, blob, {
+          contentType: 'image/jpeg',
+          upsert: false
+        });
+        formDraft.images[index].uploading = false;
+        if(uploadError){
+          console.error(uploadError);
+          alert("Couldn't upload that photo. Make sure you're logged in and the 'post-images' storage bucket exists (see supabase_setup.sql).");
+          renderPostFormModal();
+          return;
+        }
+        const { data: urlData } = supabase.storage.from('post-images').getPublicUrl(fileName);
+        formDraft.images[index].url = urlData.publicUrl;
+        renderPostFormModal();
+      }, 'image/jpeg', GALLERY_JPEG_QUALITY);
+    };
+    img.onerror = function(){
+      formDraft.images[index].uploading = false;
+      alert("Couldn't read that image file — please try a different one.");
+      renderPostFormModal();
+    };
+    img.src = e.target.result;
+  };
+  reader.onerror = function(){
+    formDraft.images[index].uploading = false;
+    alert("Couldn't read that file.");
+    renderPostFormModal();
+  };
+  reader.readAsDataURL(file);
+}
+function addColumn(){ formDraft.tableHeaders.push('Column '+(formDraft.tableHeaders.length+1)); formDraft.tableRows.forEach(r=>r.push('')); renderPostFormModal(); }
+function updateHeader(i,val){ formDraft.tableHeaders[i]=val; }
+function addRow(){ formDraft.tableRows.push(formDraft.tableHeaders.map(()=> '')); renderPostFormModal(); }
+function removeRow(i){ formDraft.tableRows.splice(i,1); renderPostFormModal(); }
+function updateCell(r,c,val){ formDraft.tableRows[r][c]=val; }
+
+async function submitPostForm(e){
+  e.preventDefault();
+  formDraft.title = document.getElementById('f_title').value.trim();
+  formDraft.date = document.getElementById('f_date').value || new Date().toISOString().slice(0,10);
+  formDraft.content = document.getElementById('f_content').value;
+  if(!formDraft.title) return;
+  if(formDraft.images){ formDraft.images.forEach(img=>{ delete img.uploading; }); }
+
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  const originalLabel = submitBtn ? submitBtn.textContent : '';
+  if(submitBtn){ submitBtn.disabled = true; submitBtn.textContent = 'Saving…'; }
+
+  const idx = POSTS.findIndex(p=>p.id===formDraft.id);
+  const toSave = JSON.parse(JSON.stringify(formDraft));
+  const previousPosts = JSON.parse(JSON.stringify(POSTS));
+  if(idx>-1){ POSTS[idx] = toSave; } else { POSTS.unshift(toSave); }
+  const saved = await savePosts(POSTS);
+  if(!saved){
+    POSTS = previousPosts; // roll back so in-memory state matches what's actually persisted
+    alert("The post couldn't be saved to the database. Make sure you're still logged in, then try again.");
+    if(submitBtn){ submitBtn.disabled = false; submitBtn.textContent = originalLabel; }
+    return;
+  }
+  closePostForm();
+  render();
+}
+
+/* =========================================================
+   MAIN RENDER
+   ========================================================= */
+function render(){
+  renderNav();
+  const route = currentRoute();
+  const app = document.getElementById('app');
+  if(route === 'home') app.innerHTML = pageHome();
+  else if(route === 'current-work') app.innerHTML = pageCurrentWork();
+  else if(route === 'conferences') app.innerHTML = pageConferences();
+  else if(route === 'about') app.innerHTML = pageAbout();
+  else if(route === 'contact') app.innerHTML = pageContact();
+  else if(route === 'login') app.innerHTML = session ? pageAdmin() : pageLogin();
+  else if(route === 'admin') app.innerHTML = pageAdmin();
+  else if(route.startsWith('post-')) app.innerHTML = pagePostDetail(route.slice(5));
+  else app.innerHTML = pageHome();
+  if(route==='admin' && formDraft){ renderPostFormModal(); }
+  if(route==='admin' && themeEditDraft){ renderThemeEditorModal(); }
+  if(route==='admin' && contentDraft){ renderContentEditorModal(); }
+  window.scrollTo(0,0);
+}
+
+/* =========================================================
+   INIT
+   ========================================================= */
+(async function init(){
+  document.getElementById('app').innerHTML = `<div class="wrap section"><div class="empty-state">Loading SAARC-AA…</div></div>`;
+  try{
+    THEMES = await buildThemes();
+    CONTENT = await loadContent();
+    const savedThemeSetting = await fetchSetting('theme', { active: 'standard' });
+    await applyTheme(savedThemeSetting.active || 'standard', false);
+    POSTS = await loadPosts();
+    VISIT_COUNT = await getVisitCount();
+  }catch(err){
+    console.error('Failed to load site data from Supabase', err);
+    document.getElementById('app').innerHTML = `<div class="wrap section"><div class="alert alert-error">Couldn't connect to the database. Double-check SUPABASE_URL and SUPABASE_ANON_KEY near the top of this file, and that the SQL setup script has been run.</div></div>`;
+    return;
+  }
+  render();
+})();
+</script>
+
+</body>
+</html>
