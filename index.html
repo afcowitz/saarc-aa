@@ -163,6 +163,19 @@
   .file-upload-btn{display:inline-block;font-size:12.5px;font-weight:600;color:var(--secondary);border:1px solid var(--line);border-radius:6px;padding:5px 10px;cursor:pointer;width:fit-content;background:#fff;}
   .file-upload-btn:hover{border-color:var(--secondary);}
   .icon-btn{background:none;border:none;color:var(--danger);font-size:16px;padding:4px 8px;}
+
+  /* ---------- Content blocks (post editor + rendered file downloads) ---------- */
+  .block-card{border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px;background:#fff;}
+  .block-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .block-label{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--secondary);}
+  .block-controls{display:flex;gap:4px;}
+  .block-controls button{background:var(--surface);border:1px solid var(--line);border-radius:6px;width:26px;height:26px;font-size:12px;color:var(--ink-soft);}
+  .block-controls button:hover:not(:disabled){border-color:var(--secondary);color:var(--secondary);}
+  .block-controls button:disabled{opacity:.35;cursor:not-allowed;}
+  .add-block-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+  .file-download-card{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 18px;}
+  .file-download-icon{font-size:26px;flex-shrink:0;}
+
   .alert{padding:11px 14px;border-radius:8px;font-size:13.5px;margin-bottom:16px;}
   .alert-error{background:var(--danger-soft);color:var(--danger);}
   .alert-success{background:#DCEFE3;color:var(--primary-dark);}
@@ -724,13 +737,42 @@ function pageHome(){
     </div>
   `;
 }
+/* =========================================================
+   CONTENT BLOCKS — a post is now an ordered list of blocks
+   (text / image / gallery / table / file), so admins can mix
+   several of each in any arrangement within one post.
+   Posts saved under the old single-type shape (type/content/
+   images/tableHeaders/tableRows) are converted to blocks
+   on the fly here, so nothing needs to be migrated in the
+   database — they're upgraded automatically the next time
+   they're viewed or edited and saved.
+   ========================================================= */
+function migrateToBlocks(post){
+  if(post.blocks && Array.isArray(post.blocks) && post.blocks.length){ return post.blocks; }
+  const blocks = [];
+  if(post.content){ blocks.push({ type:'text', content: post.content }); }
+  if(post.type==='gallery' && post.images && post.images.length){
+    blocks.push({ type:'gallery', images: post.images.map(img=>({ url: img.url||'', caption: img.caption||'' })) });
+  }
+  if(post.type==='table' && post.tableHeaders){
+    blocks.push({ type:'table', headers: post.tableHeaders.slice(), rows: post.tableRows.map(r=>r.slice()) });
+  }
+  if(!blocks.length){ blocks.push({ type:'text', content:'' }); }
+  return blocks;
+}
+function blockIcon(type){ return { text:'¶', image:'🖼', gallery:'◇', table:'▦', file:'⬇' }[type] || '¶'; }
+function blockLabel(type){ return { text:'Text', image:'Image', gallery:'Image Gallery', table:'Table', file:'File Download' }[type] || type; }
+
 function postCardHtml(p){
-  const typeLabel = p.type==='gallery' ? '◇ Gallery' : p.type==='table' ? '▦ Table' : '¶ Article';
+  const blocks = migrateToBlocks(p);
+  const typeIcons = [...new Set(blocks.map(b=>b.type))].map(blockIcon).join(' ');
+  const textBlock = blocks.find(b=>b.type==='text' && b.content && b.content.trim());
+  const excerptText = textBlock ? excerpt(textBlock.content,160) : '';
   return `
     <div class="post-card" onclick="navigate('post-${p.id}')">
-      <div class="post-meta"><span class="pill ${p.category}">${esc(CATEGORY_LABELS[p.category])}</span><span>${fmtDate(p.date)}</span><span class="type-icon">${typeLabel}</span></div>
+      <div class="post-meta"><span class="pill ${p.category}">${esc(CATEGORY_LABELS[p.category])}</span><span>${fmtDate(p.date)}</span><span class="type-icon">${typeIcons}</span></div>
       <h3>${esc(p.title)}</h3>
-      <p class="post-excerpt">${esc(excerpt(p.content,160))}</p>
+      ${excerptText ? `<p class="post-excerpt">${esc(excerptText)}</p>` : ''}
     </div>`;
 }
 function emptyState(msg){ return `<div class="empty-state">${esc(msg)}</div>`; }
@@ -777,27 +819,55 @@ function pageContact(){
 function pagePostDetail(id){
   const p = POSTS.find(x=>x.id===id);
   if(!p) return `<div class="wrap section">${emptyState('Post not found.')}</div>`;
+  const blocks = migrateToBlocks(p);
   let body = `<div class="wrap section" style="max-width:760px;">
       <a class="breadcrumb" href="#/home" onclick="navigate('home');return false;">← Back</a>
       <div class="post-meta" style="margin-bottom:10px;"><span class="pill ${p.category}">${esc(CATEGORY_LABELS[p.category])}</span><span>${fmtDate(p.date)}</span></div>
-      <h1>${esc(p.title)}</h1>
-      <div style="white-space:pre-line;color:var(--ink-soft);font-size:15.5px;">${esc(p.content)}</div>`;
-  if(p.type==='gallery' && p.images && p.images.length){
-    const hasRealPhotos = p.images.some(img=>img.url);
-    body += `<div class="gallery-grid">` + p.images.map(img=>{
+      <h1>${esc(p.title)}</h1>`;
+  body += blocks.map(renderPostBlock).join('');
+  body += `</div>`;
+  return body;
+}
+
+function renderPostBlock(block){
+  if(block.type==='text'){
+    if(!block.content) return '';
+    return `<div style="white-space:pre-line;color:var(--ink-soft);font-size:15.5px;margin-bottom:22px;">${esc(block.content)}</div>`;
+  }
+  if(block.type==='image'){
+    if(!block.url) return '';
+    return `<figure style="margin:0 0 22px 0;">
+      <img src="${esc(block.url)}" alt="${esc(block.caption||'')}" style="width:100%;border-radius:var(--radius);display:block;">
+      ${block.caption ? `<figcaption style="font-size:13px;color:var(--ink-soft);margin-top:6px;">${esc(block.caption)}</figcaption>` : ''}
+    </figure>`;
+  }
+  if(block.type==='gallery'){
+    if(!block.images || !block.images.length) return '';
+    const hasRealPhotos = block.images.some(img=>img.url);
+    let html = `<div class="gallery-grid" style="margin-bottom:${hasRealPhotos?'22px':'2px'};">` + block.images.map(img=>{
       if(img.url){
         return `<div class="gallery-tile" style="background-image:url('${esc(img.url)}');background-size:cover;background-position:center;">${img.caption ? `<span class="cap">${esc(img.caption)}</span>` : ''}</div>`;
       }
       const c = colorFor(img.caption||'x');
       return `<div class="gallery-tile" style="background:${c};"><span class="ph-icon">🖼</span><span class="cap">${esc(img.caption||'Untitled image')}</span></div>`;
-    }).join('') + `</div>` + (hasRealPhotos ? '' : `<p style="font-size:12px;color:var(--ink-soft);">Placeholder gallery — real photographs can be uploaded from the admin dashboard.</p>`);
+    }).join('') + `</div>`;
+    if(!hasRealPhotos){ html += `<p style="font-size:12px;color:var(--ink-soft);margin-bottom:22px;">Placeholder gallery — real photographs can be uploaded from the admin dashboard.</p>`; }
+    return html;
   }
-  if(p.type==='table' && p.tableHeaders){
-    body += `<table class="data-table"><thead><tr>${p.tableHeaders.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>`
-      + p.tableRows.map(row=>`<tr>${row.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('') + `</tbody></table>`;
+  if(block.type==='table'){
+    if(!block.headers || !block.headers.length) return '';
+    return `<table class="data-table" style="margin-bottom:22px;"><thead><tr>${block.headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>`
+      + block.rows.map(row=>`<tr>${row.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('') + `</tbody></table>`;
   }
-  body += `</div>`;
-  return body;
+  if(block.type==='file'){
+    if(!block.url) return '';
+    return `<div class="file-download-card">
+      <div class="file-download-icon">📄</div>
+      <div style="flex:1;min-width:0;"><div style="font-weight:600;overflow-wrap:break-word;">${esc(block.fileName || 'Attached file')}</div></div>
+      <a class="btn btn-primary btn-sm" href="${esc(block.url)}" download="${esc(block.fileName||'')}" target="_blank" rel="noopener">${esc(block.label || 'Download')}</a>
+    </div>`;
+  }
+  return '';
 }
 
 /* =========================================================
@@ -968,7 +1038,7 @@ function pageAdmin(){
           <div class="admin-post-row">
             <div class="info">
               <div><strong>${esc(p.title)}</strong> <span class="pill ${p.category}" style="margin-left:6px;">${esc(CATEGORY_LABELS[p.category])}</span></div>
-              <small>${fmtDate(p.date)} · ${esc(p.type)} · by ${esc(CONTENT.execNames[p.author] || p.author)}${ROLE_LABELS[p.author] ? ' — ' + esc(ROLE_LABELS[p.author]) : ''}</small>
+              <small>${fmtDate(p.date)} · ${[...new Set(migrateToBlocks(p).map(b=>b.type))].map(blockLabel).join(' + ')} · by ${esc(CONTENT.execNames[p.author] || p.author)}${ROLE_LABELS[p.author] ? ' — ' + esc(ROLE_LABELS[p.author]) : ''}</small>
             </div>
             <div style="display:flex;gap:8px;flex-shrink:0;">
               <button class="btn btn-outline btn-sm" onclick="navigate('post-${p.id}')">View</button>
@@ -994,51 +1064,100 @@ async function deletePost(id){
    ========================================================= */
 function openPostForm(id){
   const existing = id ? POSTS.find(p=>p.id===id) : null;
-  formDraft = existing ? JSON.parse(JSON.stringify(existing)) : {
-    id: 'p'+Date.now(), category:'current', type:'text', author: session.username,
-    title:'', date: new Date().toISOString().slice(0,10), content:'',
-    images:[], tableHeaders:['Column 1','Column 2'], tableRows:[['','']]
+  formDraft = existing ? {
+    id: existing.id,
+    category: existing.category,
+    date: existing.date,
+    title: existing.title,
+    author: existing.author,
+    blocks: JSON.parse(JSON.stringify(migrateToBlocks(existing)))
+  } : {
+    id: 'p'+Date.now(), category:'current', author: session.username,
+    title:'', date: new Date().toISOString().slice(0,10),
+    blocks: [{ type:'text', content:'' }]
   };
   renderPostFormModal();
 }
 function closePostForm(){ formDraft = null; document.getElementById('postFormModal').innerHTML = ''; }
 
-function renderPostFormModal(){
-  const d = formDraft;
-  if(!d) return;
-  const isEdit = POSTS.some(p=>p.id===d.id);
-  let typeSpecific = '';
-  if(d.type==='gallery'){
-    typeSpecific = `<div class="field"><label>Gallery Images</label>
-      <div id="galleryEditorRows">${d.images.map((img,i)=>`
+function renderBlockEditor(block, i){
+  let inner = '';
+  if(block.type==='text'){
+    inner = `<textarea placeholder="Write some text..." oninput="updateBlockField(${i},'content',this.value)">${esc(block.content||'')}</textarea>`;
+  } else if(block.type==='image'){
+    inner = `
+      <div class="gallery-upload-row">
+        <div class="gallery-thumb" style="${block.url ? `background-image:url('${esc(block.url)}');background-size:cover;background-position:center;` : ''}">
+          ${block.uploading ? '<span>Uploading…</span>' : (block.url ? '' : '<span>No photo</span>')}
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+          <input type="text" value="${esc(block.caption||'')}" placeholder="Caption (optional)" oninput="updateBlockField(${i},'caption',this.value)">
+          <label class="file-upload-btn">
+            ${block.uploading ? 'Uploading…' : (block.url ? 'Replace photo' : 'Upload photo')}
+            <input type="file" accept="image/*" style="display:none;" ${block.uploading?'disabled':''} onchange="handleImageBlockUpload(${i}, this.files[0])">
+          </label>
+        </div>
+      </div>`;
+  } else if(block.type==='gallery'){
+    inner = `
+      <div>${(block.images||[]).map((img,gi)=>`
         <div class="gallery-upload-row">
           <div class="gallery-thumb" style="${img.url ? `background-image:url('${esc(img.url)}');background-size:cover;background-position:center;` : ''}">
             ${img.uploading ? '<span>Uploading…</span>' : (img.url ? '' : '<span>No photo</span>')}
           </div>
           <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-            <input type="text" value="${esc(img.caption)}" placeholder="Image caption" oninput="updateGalleryCaption(${i}, this.value)">
+            <input type="text" value="${esc(img.caption||'')}" placeholder="Image caption" oninput="updateGalleryBlockCaption(${i},${gi},this.value)">
             <label class="file-upload-btn">
               ${img.uploading ? 'Uploading…' : (img.url ? 'Replace photo' : 'Upload photo')}
-              <input type="file" accept="image/*" style="display:none;" ${img.uploading ? 'disabled' : ''} onchange="handleGalleryFileSelect(${i}, this.files[0])">
+              <input type="file" accept="image/*" style="display:none;" ${img.uploading?'disabled':''} onchange="handleGalleryBlockFileSelect(${i},${gi}, this.files[0])">
             </label>
           </div>
-          <button type="button" class="icon-btn" onclick="removeGalleryImage(${i})" title="Remove">✕</button>
+          <button type="button" class="icon-btn" onclick="removeGalleryBlockImage(${i},${gi})" title="Remove">✕</button>
         </div>`).join('')}</div>
-      <button type="button" class="btn btn-outline btn-sm" onclick="addGalleryImage()">+ Add image</button>
-      <div class="field-hint">Photos are resized, compressed, and uploaded to Supabase Storage — visible to every visitor, not just this browser.</div></div>`;
-  } else if(d.type==='table'){
-    typeSpecific = `<div class="field"><label>Table Columns</label>
-      <div class="gallery-editor-row">${d.tableHeaders.map((h,i)=>`<input type="text" value="${esc(h)}" placeholder="Column ${i+1}" oninput="updateHeader(${i}, this.value)">`).join('')}
-      <button type="button" class="btn btn-outline btn-sm" onclick="addColumn()">+ Col</button></div>
-      <label style="margin-top:12px;">Table Rows</label>
-      <div id="tableRowsEditor">${d.tableRows.map((row,ri)=>`
-        <div class="table-row-editor">${row.map((cell,ci)=>`<input type="text" value="${esc(cell)}" oninput="updateCell(${ri},${ci},this.value)">`).join('')}
-        <button type="button" class="icon-btn" onclick="removeRow(${ri})">✕</button></div>`).join('')}</div>
-      <button type="button" class="btn btn-outline btn-sm" onclick="addRow()">+ Add row</button></div>`;
+      <button type="button" class="btn btn-outline btn-sm" onclick="addGalleryBlockImage(${i})">+ Add image</button>`;
+  } else if(block.type==='table'){
+    inner = `
+      <label style="font-size:12.5px;font-weight:600;color:var(--ink-soft);display:block;margin-bottom:6px;">Columns</label>
+      <div class="gallery-editor-row">${block.headers.map((h,ci)=>`<input type="text" value="${esc(h)}" placeholder="Column ${ci+1}" oninput="updateTableBlockHeader(${i},${ci},this.value)">`).join('')}
+      <button type="button" class="btn btn-outline btn-sm" onclick="addTableBlockColumn(${i})">+ Col</button></div>
+      <label style="font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-top:10px;display:block;margin-bottom:6px;">Rows</label>
+      <div>${block.rows.map((row,ri)=>`
+        <div class="table-row-editor">${row.map((cell,ci)=>`<input type="text" value="${esc(cell)}" oninput="updateTableBlockCell(${i},${ri},${ci},this.value)">`).join('')}
+        <button type="button" class="icon-btn" onclick="removeTableBlockRow(${i},${ri})">✕</button></div>`).join('')}</div>
+      <button type="button" class="btn btn-outline btn-sm" onclick="addTableBlockRow(${i})">+ Add row</button>`;
+  } else if(block.type==='file'){
+    inner = `
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <label class="file-upload-btn">
+          ${block.uploading ? 'Uploading…' : (block.url ? 'Replace file' : 'Choose file')}
+          <input type="file" style="display:none;" ${block.uploading?'disabled':''} onchange="handleFileBlockUpload(${i}, this.files[0])">
+        </label>
+        ${block.fileName ? `<span style="font-size:13px;color:var(--ink-soft);overflow-wrap:break-word;">${esc(block.fileName)}</span>` : ''}
+      </div>
+      <div class="field" style="margin-top:10px;margin-bottom:0;"><label>Button Label</label><input type="text" value="${esc(block.label||'Download')}" oninput="updateBlockField(${i},'label',this.value)"></div>
+      <div class="field-hint">Any file type, up to ${FILE_BLOCK_MAX_MB}MB — visible to every visitor once uploaded.</div>`;
   }
+  return `
+    <div class="block-card">
+      <div class="block-card-head">
+        <span class="block-label">${blockIcon(block.type)} ${blockLabel(block.type)}</span>
+        <div class="block-controls">
+          <button type="button" onclick="moveBlock(${i},-1)" title="Move up" ${i===0?'disabled':''}>↑</button>
+          <button type="button" onclick="moveBlock(${i},1)" title="Move down" ${i===formDraft.blocks.length-1?'disabled':''}>↓</button>
+          <button type="button" onclick="removeBlock(${i})" title="Remove block" style="color:var(--danger);">✕</button>
+        </div>
+      </div>
+      ${inner}
+    </div>`;
+}
+
+function renderPostFormModal(){
+  const d = formDraft;
+  if(!d) return;
+  const isEdit = POSTS.some(p=>p.id===d.id);
   document.getElementById('postFormModal').innerHTML = `
     <div style="position:fixed;inset:0;background:rgba(22,36,31,0.55);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto;z-index:100;">
-      <div class="card-panel" style="max-width:600px;width:100%;background:#fff;">
+      <div class="card-panel" style="max-width:640px;width:100%;background:#fff;">
         <h3>${isEdit ? 'Edit Post' : 'New Post'}</h3>
         <form onsubmit="submitPostForm(event)">
           <div class="field"><label>Title</label><input type="text" id="f_title" value="${esc(d.title)}" required></div>
@@ -1046,16 +1165,20 @@ function renderPostFormModal(){
             <div class="field"><label>Category</label><select id="f_category" onchange="formDraft.category=this.value">
               ${Object.entries(CATEGORY_LABELS).map(([k,v])=>`<option value="${k}" ${d.category===k?'selected':''}>${v}</option>`).join('')}
             </select></div>
-            <div class="field"><label>Post Type</label><select id="f_type" onchange="changePostType(this.value)">
-              <option value="text" ${d.type==='text'?'selected':''}>Text Article</option>
-              <option value="gallery" ${d.type==='gallery'?'selected':''}>Image Gallery</option>
-              <option value="table" ${d.type==='table'?'selected':''}>Table</option>
-            </select></div>
+            <div class="field"><label>Date</label><input type="date" id="f_date" value="${esc(d.date)}"></div>
           </div>
-          <div class="field"><label>Date</label><input type="date" id="f_date" value="${esc(d.date)}"></div>
-          <div class="field"><label>Body Text</label><textarea id="f_content" placeholder="Write the article text or a description...">${esc(d.content)}</textarea></div>
-          ${typeSpecific}
-          <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+
+          <label style="font-size:13px;font-weight:600;color:var(--ink-soft);display:block;margin-bottom:8px;">Content</label>
+          <div id="blockEditorList">${d.blocks.map((b,i)=>renderBlockEditor(b,i)).join('')}</div>
+          <div class="add-block-row">
+            <button type="button" class="btn btn-outline btn-sm" onclick="addBlock('text')">+ Text</button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="addBlock('image')">+ Image</button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="addBlock('gallery')">+ Gallery</button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="addBlock('table')">+ Table</button>
+            <button type="button" class="btn btn-outline btn-sm" onclick="addBlock('file')">+ File Download</button>
+          </div>
+
+          <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
             <button type="button" class="btn btn-outline" onclick="closePostForm()">Cancel</button>
             <button type="submit" class="btn btn-primary">${isEdit ? 'Save Changes' : 'Publish Post'}</button>
           </div>
@@ -1063,34 +1186,53 @@ function renderPostFormModal(){
       </div>
     </div>`;
 }
-function changePostType(t){
-  formDraft.type = t;
-  if(t==='gallery' && (!formDraft.images || !formDraft.images.length)) formDraft.images=[{caption:''}];
-  if(t==='table' && (!formDraft.tableHeaders || !formDraft.tableHeaders.length)){ formDraft.tableHeaders=['Column 1','Column 2']; formDraft.tableRows=[['','']]; }
+
+function addBlock(type){
+  let block;
+  if(type==='text') block = { type:'text', content:'' };
+  else if(type==='image') block = { type:'image', url:'', caption:'' };
+  else if(type==='gallery') block = { type:'gallery', images:[{caption:''}] };
+  else if(type==='table') block = { type:'table', headers:['Column 1','Column 2'], rows:[['','']] };
+  else if(type==='file') block = { type:'file', url:'', fileName:'', label:'Download' };
+  else return;
+  formDraft.blocks.push(block);
   renderPostFormModal();
 }
-function addGalleryImage(){ formDraft.images.push({caption:''}); renderPostFormModal(); }
-function removeGalleryImage(i){ formDraft.images.splice(i,1); renderPostFormModal(); }
-function updateGalleryCaption(i,val){ formDraft.images[i].caption = val; }
+function removeBlock(i){
+  if(formDraft.blocks.length<=1){ alert('A post needs at least one content block.'); return; }
+  formDraft.blocks.splice(i,1);
+  renderPostFormModal();
+}
+function moveBlock(i, dir){
+  const j = i+dir;
+  if(j<0 || j>=formDraft.blocks.length) return;
+  const tmp = formDraft.blocks[i]; formDraft.blocks[i] = formDraft.blocks[j]; formDraft.blocks[j] = tmp;
+  renderPostFormModal();
+}
+function updateBlockField(i, field, val){ formDraft.blocks[i][field] = val; }
 
-/* Reads a chosen photo, downsizes it to a sane max dimension, re-encodes
-   it as a compressed JPEG, and uploads it to the 'post-images' bucket in
-   Supabase Storage — so photos are real shared files, not embedded text. */
+// Gallery-block image list
+function addGalleryBlockImage(bi){ formDraft.blocks[bi].images.push({caption:''}); renderPostFormModal(); }
+function removeGalleryBlockImage(bi, ii){ formDraft.blocks[bi].images.splice(ii,1); renderPostFormModal(); }
+function updateGalleryBlockCaption(bi, ii, val){ formDraft.blocks[bi].images[ii].caption = val; }
+
+// Table-block editing
+function addTableBlockColumn(bi){ const b=formDraft.blocks[bi]; b.headers.push('Column '+(b.headers.length+1)); b.rows.forEach(r=>r.push('')); renderPostFormModal(); }
+function updateTableBlockHeader(bi, ci, val){ formDraft.blocks[bi].headers[ci] = val; }
+function addTableBlockRow(bi){ const b=formDraft.blocks[bi]; b.rows.push(b.headers.map(()=>'')); renderPostFormModal(); }
+function removeTableBlockRow(bi, ri){ formDraft.blocks[bi].rows.splice(ri,1); renderPostFormModal(); }
+function updateTableBlockCell(bi, ri, ci, val){ formDraft.blocks[bi].rows[ri][ci] = val; }
+
+/* Shared photo pipeline: downsize to a sane max dimension, re-encode as a
+   compressed JPEG, and upload to the 'post-images' bucket in Supabase
+   Storage — used by both single-image blocks and gallery-block images. */
 const GALLERY_MAX_DIMENSION = 1280;
 const GALLERY_JPEG_QUALITY = 0.82;
-function handleGalleryFileSelect(index, file){
-  if(!file) return;
-  if(!file.type || !file.type.startsWith('image/')){
-    alert('Please choose an image file.');
-    return;
-  }
-  formDraft.images[index].uploading = true;
-  renderPostFormModal();
-
+function compressAndUploadImage(file, onDone){
   const reader = new FileReader();
   reader.onload = function(e){
     const img = new Image();
-    img.onload = async function(){
+    img.onload = function(){
       let w = img.width, h = img.height;
       if(w > GALLERY_MAX_DIMENSION || h > GALLERY_MAX_DIMENSION){
         if(w >= h){ h = Math.round(h * (GALLERY_MAX_DIMENSION / w)); w = GALLERY_MAX_DIMENSION; }
@@ -1099,52 +1241,91 @@ function handleGalleryFileSelect(index, file){
       const canvas = document.createElement('canvas');
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-
       canvas.toBlob(async function(blob){
         const fileName = `${Date.now()}-${Math.random().toString(36).slice(2,8)}.jpg`;
         const { error: uploadError } = await supabaseClient.storage.from('post-images').upload(fileName, blob, {
-          contentType: 'image/jpeg',
-          upsert: false
+          contentType: 'image/jpeg', upsert: false
         });
-        formDraft.images[index].uploading = false;
-        if(uploadError){
-          console.error(uploadError);
-          alert("Couldn't upload that photo. Make sure you're logged in and the 'post-images' storage bucket exists (see supabase_setup.sql).");
-          renderPostFormModal();
-          return;
-        }
+        if(uploadError){ console.error(uploadError); onDone(null); return; }
         const { data: urlData } = supabaseClient.storage.from('post-images').getPublicUrl(fileName);
-        formDraft.images[index].url = urlData.publicUrl;
-        renderPostFormModal();
+        onDone(urlData.publicUrl);
       }, 'image/jpeg', GALLERY_JPEG_QUALITY);
     };
-    img.onerror = function(){
-      formDraft.images[index].uploading = false;
-      alert("Couldn't read that image file — please try a different one.");
-      renderPostFormModal();
-    };
+    img.onerror = function(){ onDone(null); };
     img.src = e.target.result;
   };
-  reader.onerror = function(){
-    formDraft.images[index].uploading = false;
-    alert("Couldn't read that file.");
-    renderPostFormModal();
-  };
+  reader.onerror = function(){ onDone(null); };
   reader.readAsDataURL(file);
 }
-function addColumn(){ formDraft.tableHeaders.push('Column '+(formDraft.tableHeaders.length+1)); formDraft.tableRows.forEach(r=>r.push('')); renderPostFormModal(); }
-function updateHeader(i,val){ formDraft.tableHeaders[i]=val; }
-function addRow(){ formDraft.tableRows.push(formDraft.tableHeaders.map(()=> '')); renderPostFormModal(); }
-function removeRow(i){ formDraft.tableRows.splice(i,1); renderPostFormModal(); }
-function updateCell(r,c,val){ formDraft.tableRows[r][c]=val; }
+function handleImageBlockUpload(bi, file){
+  if(!file) return;
+  if(!file.type || !file.type.startsWith('image/')){ alert('Please choose an image file.'); return; }
+  formDraft.blocks[bi].uploading = true;
+  renderPostFormModal();
+  compressAndUploadImage(file, function(url){
+    formDraft.blocks[bi].uploading = false;
+    if(!url){ alert("Couldn't upload that photo. Make sure you're logged in."); renderPostFormModal(); return; }
+    formDraft.blocks[bi].url = url;
+    renderPostFormModal();
+  });
+}
+function handleGalleryBlockFileSelect(bi, ii, file){
+  if(!file) return;
+  if(!file.type || !file.type.startsWith('image/')){ alert('Please choose an image file.'); return; }
+  formDraft.blocks[bi].images[ii].uploading = true;
+  renderPostFormModal();
+  compressAndUploadImage(file, function(url){
+    formDraft.blocks[bi].images[ii].uploading = false;
+    if(!url){ alert("Couldn't upload that photo. Make sure you're logged in."); renderPostFormModal(); return; }
+    formDraft.blocks[bi].images[ii].url = url;
+    renderPostFormModal();
+  });
+}
+
+/* File-download block: uploads the original file as-is (no compression,
+   since it might not be an image at all) to the same public bucket. */
+const FILE_BLOCK_MAX_MB = 20;
+function handleFileBlockUpload(bi, file){
+  if(!file) return;
+  if(file.size > FILE_BLOCK_MAX_MB*1024*1024){
+    alert(`That file is larger than ${FILE_BLOCK_MAX_MB}MB — please use a smaller file.`);
+    return;
+  }
+  formDraft.blocks[bi].uploading = true;
+  renderPostFormModal();
+  (async () => {
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const storagePath = `${Date.now()}-${Math.random().toString(36).slice(2,8)}-${safeName}`;
+    const { error: uploadError } = await supabaseClient.storage.from('post-images').upload(storagePath, file, {
+      contentType: file.type || 'application/octet-stream',
+      upsert: false
+    });
+    formDraft.blocks[bi].uploading = false;
+    if(uploadError){
+      console.error(uploadError);
+      alert("Couldn't upload that file. Make sure you're logged in.");
+      renderPostFormModal();
+      return;
+    }
+    const { data: urlData } = supabaseClient.storage.from('post-images').getPublicUrl(storagePath);
+    formDraft.blocks[bi].url = urlData.publicUrl;
+    formDraft.blocks[bi].fileName = file.name;
+    if(!formDraft.blocks[bi].label){ formDraft.blocks[bi].label = 'Download'; }
+    renderPostFormModal();
+  })();
+}
 
 async function submitPostForm(e){
   e.preventDefault();
   formDraft.title = document.getElementById('f_title').value.trim();
   formDraft.date = document.getElementById('f_date').value || new Date().toISOString().slice(0,10);
-  formDraft.content = document.getElementById('f_content').value;
   if(!formDraft.title) return;
-  if(formDraft.images){ formDraft.images.forEach(img=>{ delete img.uploading; }); }
+
+  // Strip transient "uploading" flags before saving — they're UI-only state.
+  formDraft.blocks.forEach(b=>{
+    delete b.uploading;
+    if(b.type==='gallery' && b.images){ b.images.forEach(img=>delete img.uploading); }
+  });
 
   const submitBtn = e.target.querySelector('button[type="submit"]');
   const originalLabel = submitBtn ? submitBtn.textContent : '';
