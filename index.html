@@ -310,7 +310,7 @@ const ROLE_LABELS = {
 };
 
 /* All editable page copy lives here — the President, Vice President, and
-   general secretary can change any of it from the admin dashboard's
+   General Secretary can change any of it from the admin dashboard's
    "Site Content" editor, without touching code. */
 const DEFAULT_CONTENT = {
   heroHeadline: "Advancing safe anesthesia care across South Asia, together.",
@@ -324,7 +324,7 @@ const DEFAULT_CONTENT = {
   footerTitle: "SAARC Anesthesiologists' Association",
   footerTagline: "Advancing the science and practice of anesthesiology across South Asia.",
   aboutIntro: "The SAARC Anesthesiologists' Association (SAARC-AA) is the regional professional body representing national anesthesiology societies across Afghanistan, Bangladesh, Bhutan, India, Maldives, Nepal, Pakistan, and Sri Lanka. Founded in 1987, the association exists to advance safe anesthesia practice, share clinical research, and coordinate continuing education across South Asia.",
-  aboutGovernance: "SAARC-AA is governed by an executive committee consisting of a President, Vice President, and general secretary, elected by member-country delegates at the biennial General Assembly. The presidency rotates between member countries every two years, and the association's public identity is refreshed to reflect the host country's colors during each term.",
+  aboutGovernance: "SAARC-AA is governed by an executive committee consisting of a President, Vice President, and General Secretary, elected by member-country delegates at the biennial General Assembly. The presidency rotates between member countries every two years, and the association's public identity is refreshed to reflect the host country's colors during each term.",
   execNames: {
     president: 'Dr. Asad',
     vicepresident: 'Dr. Asma',
@@ -807,7 +807,7 @@ function renderContentEditorModal(){
         <h4 style="font-size:14px;margin-top:20px;">Executive Committee Names</h4>
         <div class="field"><label>President</label><input type="text" value="${esc(d.execNames.president)}" oninput="updateExecName('president', this.value)"></div>
         <div class="field"><label>Vice President</label><input type="text" value="${esc(d.execNames.vicepresident)}" oninput="updateExecName('vicepresident', this.value)"></div>
-        <div class="field"><label>general secretary</label><input type="text" value="${esc(d.execNames.generalsecretary)}" oninput="updateExecName('generalsecretary', this.value)"></div>
+        <div class="field"><label>General Secretary</label><input type="text" value="${esc(d.execNames.generalsecretary)}" oninput="updateExecName('generalsecretary', this.value)"></div>
 
         <h4 style="font-size:14px;margin-top:20px;">Contact Page</h4>
         <label style="font-size:13px;font-weight:600;color:var(--ink-soft);display:block;margin-bottom:8px;">Address Lines</label>
@@ -1066,7 +1066,7 @@ function pageAbout(){
       <ul style="padding-left:20px;color:var(--ink-soft);">
         <li><strong style="color:var(--ink);">President</strong> — ${esc(CONTENT.execNames.president)}</li>
         <li><strong style="color:var(--ink);">Vice President</strong> — ${esc(CONTENT.execNames.vicepresident)}</li>
-        <li><strong style="color:var(--ink);">general secretary</strong> — ${esc(CONTENT.execNames.generalsecretary)}</li>
+        <li><strong style="color:var(--ink);">General Secretary</strong> — ${esc(CONTENT.execNames.generalsecretary)}</li>
       </ul>
     </div></div>`;
 }
@@ -1212,7 +1212,7 @@ const ADMIN_TEST_PASSWORDS = {
 function pageLogin(){
   return `<div class="wrap section"><div class="card-panel narrow">
     <h2 style="text-align:center;">Admin Login</h2>
-    <p style="text-align:center;font-size:13px;color:var(--ink-soft);">For the President, Vice President, and general secretary.</p>
+    <p style="text-align:center;font-size:13px;color:var(--ink-soft);">For the President, Vice President, and General Secretary.</p>
     ${loginError ? `<div class="alert alert-error">${esc(loginError)}</div>` : ''}
 
     <div class="field" style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;">
@@ -1228,7 +1228,7 @@ function pageLogin(){
           <input type="radio" name="quickLogin" value="vicepresident" onchange="applyQuickLogin(this.value)"> Vice President
         </label>
         <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer;">
-          <input type="radio" name="quickLogin" value="generalsecretary" onchange="applyQuickLogin(this.value)"> general secretary
+          <input type="radio" name="quickLogin" value="generalsecretary" onchange="applyQuickLogin(this.value)"> General Secretary
         </label>
       </div>
       <div class="field-hint">Fills in email (and password, if you've set one in ADMIN_TEST_PASSWORDS) — testing convenience only.</div>
