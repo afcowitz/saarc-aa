@@ -330,7 +330,7 @@ const DEFAULT_CONTENT = {
     vicepresident: 'Dr. Asma',
     generalsecretary: 'Dr. Sadhima Rasheed'
   },
-  contactAddress: "Secretariat Office\n[Address], [City], [Country]",
+  addressLines: ["Secretariat Office", "Male, Republic of Maldives"],
   contactEmail: "secretariat@saarc-aa.org",
   contactPhone: "+00 000 000 0000"
 };
@@ -339,9 +339,15 @@ let CONTENT = {};
 async function loadContent(){
   const parsed = await fetchSetting('content', null);
   if(parsed){
+    let addressLines = (parsed.addressLines && parsed.addressLines.length) ? parsed.addressLines : null;
+    if(!addressLines && typeof parsed.contactAddress === 'string' && parsed.contactAddress.trim()){
+      // one-time migration from the old single-textarea address field
+      addressLines = parsed.contactAddress.split('\n').map(l=>l.trim()).filter(Boolean);
+    }
     return Object.assign({}, DEFAULT_CONTENT, parsed, {
       execNames: Object.assign({}, DEFAULT_CONTENT.execNames, parsed.execNames||{}),
-      heroStats: (parsed.heroStats && parsed.heroStats.length) ? parsed.heroStats : DEFAULT_CONTENT.heroStats
+      heroStats: (parsed.heroStats && parsed.heroStats.length) ? parsed.heroStats : DEFAULT_CONTENT.heroStats,
+      addressLines: (addressLines && addressLines.length) ? addressLines : DEFAULT_CONTENT.addressLines
     });
   }
   return JSON.parse(JSON.stringify(DEFAULT_CONTENT));
@@ -759,6 +765,16 @@ function removeHeroStat(i){
   contentDraft.heroStats.splice(i,1);
   renderContentEditorModal();
 }
+function updateAddressLine(i, val){ contentDraft.addressLines[i] = val; }
+function addAddressLine(){
+  if(!contentDraft.addressLines) contentDraft.addressLines = [];
+  contentDraft.addressLines.push('');
+  renderContentEditorModal();
+}
+function removeAddressLine(i){
+  contentDraft.addressLines.splice(i,1);
+  renderContentEditorModal();
+}
 
 function renderContentEditorModal(){
   const holder = document.getElementById('contentEditorModal');
@@ -794,8 +810,14 @@ function renderContentEditorModal(){
         <div class="field"><label>general secretary</label><input type="text" value="${esc(d.execNames.generalsecretary)}" oninput="updateExecName('generalsecretary', this.value)"></div>
 
         <h4 style="font-size:14px;margin-top:20px;">Contact Page</h4>
-        <div class="field"><label>Address</label><textarea oninput="updateContentField('contactAddress', this.value)">${esc(d.contactAddress)}</textarea></div>
-        <div class="field-row">
+        <label style="font-size:13px;font-weight:600;color:var(--ink-soft);display:block;margin-bottom:8px;">Address Lines</label>
+        <div id="addressLinesEditor">${(d.addressLines||[]).map((line,i)=>`
+          <div class="gallery-editor-row">
+            <input type="text" value="${esc(line)}" placeholder="Address line ${i+1}" oninput="updateAddressLine(${i}, this.value)">
+            <button type="button" class="icon-btn" onclick="removeAddressLine(${i})" title="Remove">✕</button>
+          </div>`).join('')}</div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="addAddressLine()">+ Add Address Line</button>
+        <div class="field-row" style="margin-top:16px;">
           <div class="field"><label>Email</label><input type="text" value="${esc(d.contactEmail)}" oninput="updateContentField('contactEmail', this.value)"></div>
           <div class="field"><label>Phone</label><input type="text" value="${esc(d.contactPhone)}" oninput="updateContentField('contactPhone', this.value)"></div>
         </div>
@@ -815,6 +837,7 @@ function renderContentEditorModal(){
 async function saveContentEdit(){
   if(!contentDraft) return;
   contentDraft.heroStats = (contentDraft.heroStats||[]).filter(s=> (s.value&&s.value.trim()) || (s.label&&s.label.trim()) );
+  contentDraft.addressLines = (contentDraft.addressLines||[]).map(l=>l.trim()).filter(Boolean);
   await saveContent(contentDraft);
   if(session && CONTENT.execNames[session.username]){
     session.name = CONTENT.execNames[session.username];
@@ -1050,7 +1073,7 @@ function pageAbout(){
 function pageContact(){
   return `<div class="wrap section"><h2>Contact</h2>
     <div class="card-panel" style="max-width:560px;">
-      <p><strong>SAARC Anesthesiologists' Association</strong><br>${esc(CONTENT.contactAddress).replace(/\n/g,'<br>')}</p>
+      <p><strong>SAARC Anesthesiologists' Association</strong><br>${(CONTENT.addressLines||[]).map(esc).join('<br>')}</p>
       <p>Email: ${esc(CONTENT.contactEmail)}<br>Phone: ${esc(CONTENT.contactPhone)}</p>
     </div></div>`;
 }
