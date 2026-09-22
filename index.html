@@ -93,7 +93,7 @@
   .section-head h2{font-size:24px;}
   .section-head .see-all{font-size:13.5px;font-weight:600;color:var(--secondary);border-bottom:1px solid var(--secondary);padding-bottom:1px;}
 
-  .tri-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+  .tri-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;}
   .info-card{background:var(--surface-alt);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm);cursor:pointer;transition:box-shadow .15s, transform .15s;}
   .info-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px);}
   .info-card .tag{display:inline-block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--primary);background:#E4EEE9;padding:3px 9px;border-radius:20px;margin-bottom:10px;}
@@ -106,10 +106,6 @@
   .post-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px);}
   .post-meta{display:flex;gap:10px;align-items:center;font-size:12px;color:var(--ink-soft);margin-bottom:8px;flex-wrap:wrap;}
   .pill{padding:2px 9px;border-radius:20px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:10.5px;}
-  .pill.current{background:#E4EEE9;color:var(--primary);}
-  .pill.upcoming{background:var(--accent-soft);color:var(--primary-dark);}
-  .pill.past{background:#E7E7E9;color:#4B4B52;}
-  .pill.general{background:#DDEAEA;color:var(--secondary);}
   .post-card h3{font-size:18px;margin-bottom:6px;}
   .post-excerpt{font-size:14.5px;color:var(--ink-soft);}
   .type-icon{font-family:var(--mono);font-size:11px;color:var(--accent);}
@@ -261,13 +257,12 @@
 <footer>
   <div class="wrap">
     <div>
-      <strong style="color:#fff;">SAARC Anesthesiologists' Association</strong><br>
+      <strong style="color:#fff;" id="footerTitle">SAARC Anesthesiologists' Association</strong><br>
       <span id="footerTagline">Advancing the science and practice of anesthesiology across South Asia.</span>
     </div>
     <div class="members" id="footerMembers"></div>
   </div>
 </footer>
-<p class="storage-note">This site is backed by Supabase — posts, the theme, and the visit counter are shared with every visitor, not just this browser.</p>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -320,6 +315,13 @@ const ROLE_LABELS = {
 const DEFAULT_CONTENT = {
   heroHeadline: "Advancing safe anesthesia care across South Asia, together.",
   heroLede: "SAARC-AA connects national anesthesiology societies from eight member countries to share research, set regional standards of care, and train the next generation of anesthesiologists.",
+  heroStats: [
+    { value: '8', label: 'Member Countries' },
+    { value: '1987', label: 'Founded' },
+    { value: '3,200+', label: 'Affiliated Members' },
+    { value: '11', label: 'Regional Congresses Held' }
+  ],
+  footerTitle: "SAARC Anesthesiologists' Association",
   footerTagline: "Advancing the science and practice of anesthesiology across South Asia.",
   aboutIntro: "The SAARC Anesthesiologists' Association (SAARC-AA) is the regional professional body representing national anesthesiology societies across Afghanistan, Bangladesh, Bhutan, India, Maldives, Nepal, Pakistan, and Sri Lanka. Founded in 1987, the association exists to advance safe anesthesia practice, share clinical research, and coordinate continuing education across South Asia.",
   aboutGovernance: "SAARC-AA is governed by an executive committee consisting of a President, Vice President, and general secretary, elected by member-country delegates at the biennial General Assembly. The presidency rotates between member countries every two years, and the association's public identity is refreshed to reflect the host country's colors during each term.",
@@ -337,7 +339,10 @@ let CONTENT = {};
 async function loadContent(){
   const parsed = await fetchSetting('content', null);
   if(parsed){
-    return Object.assign({}, DEFAULT_CONTENT, parsed, { execNames: Object.assign({}, DEFAULT_CONTENT.execNames, parsed.execNames||{}) });
+    return Object.assign({}, DEFAULT_CONTENT, parsed, {
+      execNames: Object.assign({}, DEFAULT_CONTENT.execNames, parsed.execNames||{}),
+      heroStats: (parsed.heroStats && parsed.heroStats.length) ? parsed.heroStats : DEFAULT_CONTENT.heroStats
+    });
   }
   return JSON.parse(JSON.stringify(DEFAULT_CONTENT));
 }
@@ -348,8 +353,178 @@ async function saveContent(c){
   return ok;
 }
 
-const CATEGORY_LABELS = { current: 'Current Work', upcoming: 'Upcoming Conference', past: 'Past Conference', general: 'General News' };
-const PLACEHOLDER_COLORS = ['#0F6656','#2F7A93','#E8604A','#1B3F82','#54595C','#16856F'];
+/* =========================================================
+   CATEGORIES — admin-editable list of top-level categories,
+   each optionally holding its own subcategories (e.g.
+   "Conferences" holds "Upcoming" and "Past"). Stored under the
+   'categories' settings key, alongside posts/content/theme.
+   ========================================================= */
+const DEFAULT_CATEGORIES = [
+  { key: 'current', label: 'Current Work', subcategories: [] },
+  { key: 'conferences', label: 'Conferences', subcategories: [
+      { key: 'upcoming', label: 'Upcoming' },
+      { key: 'past', label: 'Past' }
+  ]}
+];
+let CATEGORIES = [];
+async function loadCategories(){
+  const parsed = await fetchSetting('categories', null);
+  if(parsed && Array.isArray(parsed) && parsed.length) return parsed;
+  return JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+}
+async function saveCategories(cats){
+  CATEGORIES = cats;
+  return await upsertSetting('categories', cats);
+}
+function slugifyUnique(label, usedKeys){
+  const base = String(label).toLowerCase().trim().replace(/[^a-z0-9]+/g,'') || 'category';
+  let key = base, n = 2;
+  while(usedKeys.has(key)){ key = base + n; n++; }
+  usedKeys.add(key);
+  return key;
+}
+function findCategory(key){ return CATEGORIES.find(c=>c.key===key); }
+function findSubcategory(catKey, subKey){
+  const cat = findCategory(catKey);
+  return cat ? (cat.subcategories||[]).find(s=>s.key===subKey) : null;
+}
+/* Old posts may still carry a flat legacy category (upcoming/past/general)
+   from before categories had subcategories — this resolves any post to
+   its effective {category, subcategory, categoryLabel, subcategoryLabel}
+   under the CURRENT category structure, without needing to touch the
+   database until that post is next edited and saved. */
+function effectiveCategory(post){
+  let category = post.category, subcategory = post.subcategory || null;
+  if(category==='upcoming' || category==='past'){ subcategory = category; category = 'conferences'; }
+  if(category==='general'){ category = 'current'; subcategory = null; }
+  const cat = findCategory(category);
+  const sub = subcategory ? findSubcategory(category, subcategory) : null;
+  return {
+    category, subcategory,
+    categoryLabel: cat ? cat.label : category,
+    subcategoryLabel: sub ? sub.label : subcategory
+  };
+}
+const PILL_COLOR_PALETTE = [
+  { bg:'#E4EEE9', fg:'#1F6650' }, { bg:'#F5E9D3', fg:'#8A5E15' }, { bg:'#E7E7E9', fg:'#4B4B52' },
+  { bg:'#DDEAEA', fg:'#2F7A93' }, { bg:'#F3D9D3', fg:'#A33B2B' }, { bg:'#E3E0F5', fg:'#5B4FA3' }
+];
+function pillColorFor(key){
+  let h = 0;
+  const str = String(key||'');
+  for(let i=0;i<str.length;i++){ h = (h*31 + str.charCodeAt(i)) % PILL_COLOR_PALETTE.length; }
+  return PILL_COLOR_PALETTE[Math.abs(h)];
+}
+function pillHtml(post){
+  const eff = effectiveCategory(post);
+  const label = eff.subcategoryLabel || eff.categoryLabel || 'Uncategorized';
+  const c = pillColorFor(eff.subcategory || eff.category);
+  return `<span class="pill" style="background:${c.bg};color:${c.fg};">${esc(label)}</span>`;
+}
+
+/* =========================================================
+   CATEGORY EDITOR — lets admins add/rename/remove top-level
+   categories and their subcategories (e.g. Conferences →
+   Upcoming/Past). A category or subcategory still in use by a
+   post can't be removed until that post is moved or deleted.
+   ========================================================= */
+let categoryDraft = null;
+
+function categoryInUse(catKey, subKey){
+  return POSTS.some(p=>{
+    const eff = effectiveCategory(p);
+    if(subKey){ return eff.category===catKey && eff.subcategory===subKey; }
+    return eff.category===catKey;
+  });
+}
+function openCategoryEditor(){
+  categoryDraft = JSON.parse(JSON.stringify(CATEGORIES));
+  renderCategoryEditorModal();
+}
+function closeCategoryEditor(){
+  categoryDraft = null;
+  const el = document.getElementById('categoryEditorModal');
+  if(el) el.innerHTML = '';
+}
+function updateCategoryLabel(catIndex, val){ categoryDraft[catIndex].label = val; }
+function updateSubcategoryLabel(catIndex, subIndex, val){ categoryDraft[catIndex].subcategories[subIndex].label = val; }
+function addCategoryDraft(){
+  categoryDraft.push({ key: null, label: '', subcategories: [] });
+  renderCategoryEditorModal();
+}
+function addSubcategoryDraft(catIndex){
+  categoryDraft[catIndex].subcategories.push({ key: null, label: '' });
+  renderCategoryEditorModal();
+}
+function removeCategoryDraft(catIndex){
+  const cat = categoryDraft[catIndex];
+  if(cat.key && categoryInUse(cat.key)){
+    alert(`Can't remove "${cat.label}" — some posts still use it. Move or delete those posts first.`);
+    return;
+  }
+  categoryDraft.splice(catIndex,1);
+  renderCategoryEditorModal();
+}
+function removeSubcategoryDraft(catIndex, subIndex){
+  const cat = categoryDraft[catIndex];
+  const sub = cat.subcategories[subIndex];
+  if(cat.key && sub.key && categoryInUse(cat.key, sub.key)){
+    alert(`Can't remove "${sub.label}" — some posts still use it. Move or delete those posts first.`);
+    return;
+  }
+  cat.subcategories.splice(subIndex,1);
+  renderCategoryEditorModal();
+}
+function renderCategoryEditorModal(){
+  const holder = document.getElementById('categoryEditorModal');
+  if(!holder) return;
+  if(!categoryDraft){ holder.innerHTML = ''; return; }
+  holder.innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(22,36,31,0.55);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto;z-index:100;">
+      <div class="card-panel" style="max-width:560px;width:100%;background:#fff;">
+        <h3>Edit Categories</h3>
+        <p style="font-size:12.5px;color:var(--ink-soft);margin-top:-8px;">Posts already using a category or subcategory must be moved or deleted before you can remove it.</p>
+        ${categoryDraft.map((cat,ci)=>`
+          <div class="block-card">
+            <div class="block-card-head">
+              <input type="text" value="${esc(cat.label)}" placeholder="Category name" oninput="updateCategoryLabel(${ci}, this.value)" style="font-weight:700;border:1px solid transparent;background:none;padding:4px 2px;font-size:15px;flex:1;">
+              <button type="button" class="icon-btn" onclick="removeCategoryDraft(${ci})" title="Remove category">✕</button>
+            </div>
+            ${cat.subcategories.map((sub,si)=>`
+              <div class="gallery-editor-row" style="margin-left:14px;">
+                <input type="text" value="${esc(sub.label)}" placeholder="Subcategory name" oninput="updateSubcategoryLabel(${ci},${si},this.value)">
+                <button type="button" class="icon-btn" onclick="removeSubcategoryDraft(${ci},${si})">✕</button>
+              </div>
+            `).join('')}
+            <button type="button" class="btn btn-outline btn-sm" style="margin-left:14px;" onclick="addSubcategoryDraft(${ci})">+ Add Subcategory</button>
+          </div>
+        `).join('')}
+        <button type="button" class="btn btn-outline btn-sm" onclick="addCategoryDraft()">+ Add Category</button>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
+          <button type="button" class="btn btn-outline" onclick="closeCategoryEditor()">Cancel</button>
+          <button type="button" class="btn btn-primary" onclick="saveCategoryEdit()">Save Categories</button>
+        </div>
+      </div>
+    </div>`;
+}
+async function saveCategoryEdit(){
+  const usedKeys = new Set();
+  categoryDraft.forEach(cat=>{ if(cat.key) usedKeys.add(cat.key); (cat.subcategories||[]).forEach(s=>{ if(s.key) usedKeys.add(s.key); }); });
+  const cleaned = categoryDraft
+    .filter(cat=>cat.label && cat.label.trim())
+    .map(cat=>{
+      const key = cat.key || slugifyUnique(cat.label, usedKeys);
+      const subs = (cat.subcategories||[])
+        .filter(s=>s.label && s.label.trim())
+        .map(s=>({ key: s.key || slugifyUnique(s.label, usedKeys), label: s.label.trim() }));
+      return { key, label: cat.label.trim(), subcategories: subs };
+    });
+  if(!cleaned.length){ alert('You need at least one category.'); return; }
+  await saveCategories(cleaned);
+  categoryDraft = null;
+  render();
+}
+
 
 /* =========================================================
    COUNTRY THEMES — each SAARC member country gets a distinct
@@ -447,6 +622,8 @@ function renderRibbonAndFooter(){
     `Member countries: ` + MEMBER_COUNTRIES.map(c=>`${c.flag} ${c.name}`).join(' · ');
   const tagEl = document.getElementById('footerTagline');
   if(tagEl){ tagEl.innerText = (CONTENT && CONTENT.footerTagline) || DEFAULT_CONTENT.footerTagline; }
+  const titleEl = document.getElementById('footerTitle');
+  if(titleEl){ titleEl.innerText = (CONTENT && CONTENT.footerTitle) || DEFAULT_CONTENT.footerTitle; }
 }
 
 /* =========================================================
@@ -572,6 +749,16 @@ function closeContentEditor(){
 }
 function updateContentField(field, val){ contentDraft[field] = val; }
 function updateExecName(role, val){ contentDraft.execNames[role] = val; }
+function updateHeroStat(i, field, val){ contentDraft.heroStats[i][field] = val; }
+function addHeroStat(){
+  if(!contentDraft.heroStats) contentDraft.heroStats = [];
+  contentDraft.heroStats.push({ value:'', label:'' });
+  renderContentEditorModal();
+}
+function removeHeroStat(i){
+  contentDraft.heroStats.splice(i,1);
+  renderContentEditorModal();
+}
 
 function renderContentEditorModal(){
   const holder = document.getElementById('contentEditorModal');
@@ -587,6 +774,15 @@ function renderContentEditorModal(){
         <h4 style="font-size:14px;margin-top:20px;">Home Page</h4>
         <div class="field"><label>Hero Headline</label><input type="text" value="${esc(d.heroHeadline)}" oninput="updateContentField('heroHeadline', this.value)"></div>
         <div class="field"><label>Hero Subtext</label><textarea oninput="updateContentField('heroLede', this.value)">${esc(d.heroLede)}</textarea></div>
+
+        <label style="font-size:13px;font-weight:600;color:var(--ink-soft);display:block;margin-bottom:8px;">Hero Stat Boxes</label>
+        <div id="heroStatsEditor">${(d.heroStats||[]).map((s,i)=>`
+          <div class="gallery-editor-row">
+            <input type="text" value="${esc(s.value)}" placeholder="e.g. 8 or 1987" style="max-width:120px;" oninput="updateHeroStat(${i},'value',this.value)">
+            <input type="text" value="${esc(s.label)}" placeholder="Label, e.g. Member Countries" oninput="updateHeroStat(${i},'label',this.value)">
+            <button type="button" class="icon-btn" onclick="removeHeroStat(${i})" title="Remove">✕</button>
+          </div>`).join('')}</div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="addHeroStat()">+ Add Stat Box</button>
 
         <h4 style="font-size:14px;margin-top:20px;">About Page</h4>
         <div class="field"><label>Introduction Paragraph</label><textarea oninput="updateContentField('aboutIntro', this.value)">${esc(d.aboutIntro)}</textarea></div>
@@ -605,6 +801,7 @@ function renderContentEditorModal(){
         </div>
 
         <h4 style="font-size:14px;margin-top:20px;">Footer</h4>
+        <div class="field"><label>Footer Title</label><input type="text" value="${esc(d.footerTitle)}" oninput="updateContentField('footerTitle', this.value)"></div>
         <div class="field"><label>Footer Tagline</label><input type="text" value="${esc(d.footerTagline)}" oninput="updateContentField('footerTagline', this.value)"></div>
 
         <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
@@ -617,6 +814,7 @@ function renderContentEditorModal(){
 
 async function saveContentEdit(){
   if(!contentDraft) return;
+  contentDraft.heroStats = (contentDraft.heroStats||[]).filter(s=> (s.value&&s.value.trim()) || (s.label&&s.label.trim()) );
   await saveContent(contentDraft);
   if(session && CONTENT.execNames[session.username]){
     session.name = CONTENT.execNames[session.username];
@@ -708,8 +906,10 @@ function colorFor(seedStr){
    ========================================================= */
 function renderNav(){
   const route = currentRoute();
-  const links = [['home','Home'],['current-work','Current Work'],['conferences','Conferences'],['about','About'],['contact','Contact']];
-  let html = links.map(([r,label])=>`<button class="navlink ${route===r?'active':''}" onclick="navigate('${r}')">${label}</button>`).join('');
+  const links = [['home','Home']]
+    .concat(CATEGORIES.map(c=>['cat-'+c.key, c.label]))
+    .concat([['about','About'],['contact','Contact']]);
+  let html = links.map(([r,label])=>`<button class="navlink ${route===r?'active':''}" onclick="navigate('${r}')">${esc(label)}</button>`).join('');
   if(session){
     html += `<button class="navlink ${route==='admin'?'active':''}" onclick="navigate('admin')">Dashboard</button>`;
     html += `<button class="navlink" onclick="logout()">Log Out</button>`;
@@ -725,17 +925,19 @@ async function logout(){ await supabaseClient.auth.signOut(); session = null; na
    ========================================================= */
 function pageHome(){
   const byNewest = (a,b)=> new Date(b.date)-new Date(a.date);
-  const currentPost = POSTS.filter(p=>p.category==='current' || p.category==='general').sort(byNewest)[0];
-  const upcoming = POSTS.filter(p=>p.category==='upcoming').sort(byNewest)[0];
-  const pastPost = POSTS.filter(p=>p.category==='past').sort(byNewest)[0];
   const recent = [...POSTS].sort(byNewest).slice(0,5);
   const t = THEMES[currentThemeKey];
-  const teaserCard = (post, fallbackRoute, tagHtml, fallbackTitle, fallbackDesc) => `
-    <div class="info-card" onclick="navigate('${post ? 'post-'+post.id : fallbackRoute}')">
-      ${tagHtml}
-      <h3>${post ? esc(post.title) : fallbackTitle}</h3>
-      <p>${post ? esc(getPostExcerpt(post,90) || 'Read more.') : fallbackDesc}</p>
-    </div>`;
+  const firstCatRoute = CATEGORIES.length ? 'cat-'+CATEGORIES[0].key : 'home';
+  const teaserCard = (cat) => {
+    const post = POSTS.filter(p=>effectiveCategory(p).category===cat.key).sort(byNewest)[0];
+    const c = pillColorFor(cat.key);
+    return `
+      <div class="info-card" onclick="navigate('${post ? 'post-'+post.id : 'cat-'+cat.key}')">
+        <span class="tag" style="background:${c.bg};color:${c.fg};">${esc(cat.label)}</span>
+        <h3>${post ? esc(post.title) : 'No posts yet'}</h3>
+        <p>${post ? esc(getPostExcerpt(post,90) || 'Read more.') : 'Check back soon for updates in this category.'}</p>
+      </div>`;
+  };
   return `
     <div class="hero">
       <div class="hero-inner">
@@ -744,27 +946,22 @@ function pageHome(){
           <h1>${esc(CONTENT.heroHeadline)}</h1>
           <p class="lede">${esc(CONTENT.heroLede)}</p>
           <div style="display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;">
-            <a class="btn btn-primary" href="#/conferences" onclick="navigate('conferences');return false;">View Conferences</a>
+            <a class="btn btn-primary" href="#/${firstCatRoute}" onclick="navigate('${firstCatRoute}');return false;">View ${CATEGORIES.length ? esc(CATEGORIES[0].label) : 'Updates'}</a>
             <a class="btn" style="background:transparent;border:1px solid rgba(255,255,255,0.4);color:#fff;" href="#/about" onclick="navigate('about');return false;">About the Association</a>
           </div>
         </div>
         <div class="hero-stats">
-          <div class="stat-card"><div class="num">8</div><div class="lbl">Member Countries</div></div>
-          <div class="stat-card"><div class="num">1987</div><div class="lbl">Founded</div></div>
-          <div class="stat-card"><div class="num">3,200+</div><div class="lbl">Affiliated Members</div></div>
-          <div class="stat-card"><div class="num">11</div><div class="lbl">Regional Congresses Held</div></div>
+          ${(CONTENT.heroStats||[]).map(s=>`<div class="stat-card"><div class="num">${esc(s.value)}</div><div class="lbl">${esc(s.label)}</div></div>`).join('')}
         </div>
       </div>
     </div>
     <div class="wrap section">
       <div class="tri-grid">
-        ${teaserCard(currentPost, 'current-work', '<span class="tag">Current Work</span>', 'Guideline reviews &amp; fellowships', 'Ongoing committee work, clinical guidelines, and training programmes across the region.')}
-        ${teaserCard(upcoming, 'conferences', '<span class="tag" style="background:var(--accent-soft);color:var(--primary-dark);">Upcoming</span>', 'Conferences &amp; workshops', 'Details on the next regional congress and workshops.')}
-        ${teaserCard(pastPost, 'conferences', '<span class="tag" style="background:#E7E7E9;color:#4B4B52;">Past</span>', 'Congress archive', 'Recaps, photos, and attendance records from previous SAARC-AA events.')}
+        ${CATEGORIES.map(teaserCard).join('') || emptyState('No categories set up yet.')}
       </div>
     </div>
     <div class="wrap section" style="padding-top:0;">
-      <div class="section-head"><h2>Latest Updates</h2><a class="see-all" href="#/current-work" onclick="navigate('current-work');return false;">See all →</a></div>
+      <div class="section-head"><h2>Latest Updates</h2><a class="see-all" href="#/${firstCatRoute}" onclick="navigate('${firstCatRoute}');return false;">See all →</a></div>
       <div class="post-list">${recent.map(postCardHtml).join('') || emptyState('No posts yet.')}</div>
     </div>
   `;
@@ -806,29 +1003,35 @@ function postCardHtml(p){
   const excerptText = getPostExcerpt(p, 160);
   return `
     <div class="post-card" onclick="navigate('post-${p.id}')">
-      <div class="post-meta"><span class="pill ${p.category}">${esc(CATEGORY_LABELS[p.category])}</span><span>${fmtDate(p.date)}</span><span class="type-icon">${typeIcons}</span></div>
+      <div class="post-meta">${pillHtml(p)}<span>${fmtDate(p.date)}</span><span class="type-icon">${typeIcons}</span></div>
       <h3>${esc(p.title)}</h3>
       ${excerptText ? `<p class="post-excerpt">${esc(excerptText)}</p>` : ''}
     </div>`;
 }
 function emptyState(msg){ return `<div class="empty-state">${esc(msg)}</div>`; }
 
-function pageCurrentWork(){
-  const posts = POSTS.filter(p=>p.category==='current' || p.category==='general').sort((a,b)=> new Date(b.date)-new Date(a.date));
-  return `<div class="wrap section"><h2>Current Work</h2>
-    <p style="color:var(--ink-soft);max-width:640px;">Ongoing committee initiatives, guideline reviews, fellowship programmes, and general announcements from SAARC-AA leadership.</p>
-    <div class="post-list" style="margin-top:22px;">${posts.map(postCardHtml).join('') || emptyState('No current updates yet.')}</div></div>`;
-}
-
-let confTab = 'upcoming';
-function pageConferences(){
-  const posts = POSTS.filter(p=>p.category===confTab).sort((a,b)=> new Date(b.date)-new Date(a.date));
-  return `<div class="wrap section"><h2>Conferences &amp; Workshops</h2>
-    <div class="tab-row">
-      <button class="tab-btn ${confTab==='upcoming'?'active':''}" onclick="confTab='upcoming';render();">Upcoming</button>
-      <button class="tab-btn ${confTab==='past'?'active':''}" onclick="confTab='past';render();">Past</button>
-    </div>
-    <div class="post-list">${posts.map(postCardHtml).join('') || emptyState(`No ${confTab} conferences posted yet.`)}</div></div>`;
+/* Tracks which subcategory tab is active per top-level category
+   (e.g. Conferences → Upcoming/Past), keyed by category key. */
+let categoryTab = {};
+function pageCategory(catKey){
+  const cat = findCategory(catKey);
+  if(!cat) return `<div class="wrap section">${emptyState('Category not found.')}</div>`;
+  const subs = cat.subcategories || [];
+  let posts;
+  let tabsHtml = '';
+  if(subs.length){
+    if(!categoryTab[catKey] || !subs.some(s=>s.key===categoryTab[catKey])){ categoryTab[catKey] = subs[0].key; }
+    const activeSub = categoryTab[catKey];
+    posts = POSTS.filter(p=>{ const eff = effectiveCategory(p); return eff.category===catKey && eff.subcategory===activeSub; });
+    tabsHtml = `<div class="tab-row">${subs.map(s=>`<button class="tab-btn ${activeSub===s.key?'active':''}" onclick="categoryTab['${catKey}']='${s.key}';render();">${esc(s.label)}</button>`).join('')}</div>`;
+    posts.sort((a,b)=> new Date(b.date)-new Date(a.date));
+    return `<div class="wrap section"><h2>${esc(cat.label)}</h2>
+      ${tabsHtml}
+      <div class="post-list">${posts.map(postCardHtml).join('') || emptyState(`No posts in ${esc(subs.find(s=>s.key===activeSub).label)} yet.`)}</div></div>`;
+  }
+  posts = POSTS.filter(p=>effectiveCategory(p).category===catKey).sort((a,b)=> new Date(b.date)-new Date(a.date));
+  return `<div class="wrap section"><h2>${esc(cat.label)}</h2>
+    <div class="post-list" style="margin-top:22px;">${posts.map(postCardHtml).join('') || emptyState('No posts yet.')}</div></div>`;
 }
 
 function pageAbout(){
@@ -859,7 +1062,7 @@ function pagePostDetail(id){
   const blocks = migrateToBlocks(p);
   let body = `<div class="wrap section" style="max-width:760px;">
       <a class="breadcrumb" href="#/home" onclick="navigate('home');return false;">← Back</a>
-      <div class="post-meta" style="margin-bottom:10px;"><span class="pill ${p.category}">${esc(CATEGORY_LABELS[p.category])}</span><span>${fmtDate(p.date)}</span></div>
+      <div class="post-meta" style="margin-bottom:10px;">${pillHtml(p)}<span>${fmtDate(p.date)}</span></div>
       <h1>${esc(p.title)}</h1>`;
   body += blocks.map(renderPostBlock).join('');
   body += `</div>`;
@@ -1120,17 +1323,24 @@ function pageAdmin(){
 
       <div class="admin-top" style="margin:30px 0 6px 0;">
         <div><h3 style="margin-bottom:2px;">Page Content</h3>
-        <p style="font-size:13px;color:var(--ink-soft);margin-bottom:0;">Edit the home page intro, About page, executive committee names, contact details, and footer text — no code required.</p></div>
+        <p style="font-size:13px;color:var(--ink-soft);margin-bottom:0;">Edit the home page intro, hero stat boxes, About page, executive committee names, contact details, and footer text — no code required.</p></div>
         <button class="btn btn-outline" onclick="openContentEditor()">Edit Site Content</button>
       </div>
       <div id="contentEditorModal"></div>
+
+      <div class="admin-top" style="margin:30px 0 6px 0;">
+        <div><h3 style="margin-bottom:2px;">Categories</h3>
+        <p style="font-size:13px;color:var(--ink-soft);margin-bottom:0;">Manage the top-level categories posts can use, and any subcategories within them (like Conferences → Upcoming / Past).</p></div>
+        <button class="btn btn-outline" onclick="openCategoryEditor()">Edit Categories</button>
+      </div>
+      <div id="categoryEditorModal"></div>
 
       <h3 style="margin:30px 0 10px 0;">All Posts (${sorted.length})</h3>
       <div class="card-panel">
         ${sorted.map(p=>`
           <div class="admin-post-row">
             <div class="info">
-              <div><strong>${esc(p.title)}</strong> <span class="pill ${p.category}" style="margin-left:6px;">${esc(CATEGORY_LABELS[p.category])}</span></div>
+              <div><strong>${esc(p.title)}</strong> <span style="margin-left:6px;display:inline-block;">${pillHtml(p)}</span></div>
               <small>${fmtDate(p.date)} · ${[...new Set(migrateToBlocks(p).map(b=>b.type))].map(blockLabel).join(' + ')} · by ${esc(CONTENT.execNames[p.author] || p.author)}${ROLE_LABELS[p.author] ? ' — ' + esc(ROLE_LABELS[p.author]) : ''}</small>
             </div>
             <div style="display:flex;gap:8px;flex-shrink:0;">
@@ -1157,15 +1367,22 @@ async function deletePost(id){
    ========================================================= */
 function openPostForm(id){
   const existing = id ? POSTS.find(p=>p.id===id) : null;
-  formDraft = existing ? {
-    id: existing.id,
-    category: existing.category,
-    date: existing.date,
-    title: existing.title,
-    author: existing.author,
-    blocks: JSON.parse(JSON.stringify(migrateToBlocks(existing)))
-  } : {
-    id: 'p'+Date.now(), category:'current', author: session.username,
+  formDraft = existing ? (() => {
+    const eff = effectiveCategory(existing);
+    return {
+      id: existing.id,
+      category: eff.category,
+      subcategory: eff.subcategory,
+      date: existing.date,
+      title: existing.title,
+      author: existing.author,
+      blocks: JSON.parse(JSON.stringify(migrateToBlocks(existing)))
+    };
+  })() : {
+    id: 'p'+Date.now(),
+    category: CATEGORIES.length ? CATEGORIES[0].key : 'current',
+    subcategory: (CATEGORIES.length && CATEGORIES[0].subcategories && CATEGORIES[0].subcategories.length) ? CATEGORIES[0].subcategories[0].key : null,
+    author: session.username,
     title:'', date: new Date().toISOString().slice(0,10),
     blocks: [{ type:'text', content:'' }]
   };
@@ -1255,11 +1472,20 @@ function renderPostFormModal(){
         <form onsubmit="submitPostForm(event)">
           <div class="field"><label>Title</label><input type="text" id="f_title" value="${esc(d.title)}" required></div>
           <div class="field-row">
-            <div class="field"><label>Category</label><select id="f_category" onchange="formDraft.category=this.value">
-              ${Object.entries(CATEGORY_LABELS).map(([k,v])=>`<option value="${k}" ${d.category===k?'selected':''}>${v}</option>`).join('')}
+            <div class="field"><label>Category</label><select id="f_category" onchange="changePostCategory(this.value)">
+              ${CATEGORIES.map(c=>`<option value="${c.key}" ${d.category===c.key?'selected':''}>${esc(c.label)}</option>`).join('')}
             </select></div>
             <div class="field"><label>Date</label><input type="date" id="f_date" value="${esc(d.date)}"></div>
           </div>
+          ${(() => {
+            const cat = findCategory(d.category);
+            const subs = cat ? (cat.subcategories||[]) : [];
+            if(!subs.length) return '';
+            if(!d.subcategory || !subs.some(s=>s.key===d.subcategory)){ d.subcategory = subs[0].key; }
+            return `<div class="field"><label>${esc(cat.label)} Type</label><select id="f_subcategory" onchange="formDraft.subcategory=this.value">
+              ${subs.map(s=>`<option value="${s.key}" ${d.subcategory===s.key?'selected':''}>${esc(s.label)}</option>`).join('')}
+            </select></div>`;
+          })()}
 
           <label style="font-size:13px;font-weight:600;color:var(--ink-soft);display:block;margin-bottom:8px;">Content</label>
           <div id="blockEditorList">${d.blocks.map((b,i)=>renderBlockEditor(b,i)).join('')}</div>
@@ -1280,6 +1506,13 @@ function renderPostFormModal(){
     </div>`;
 }
 
+function changePostCategory(catKey){
+  formDraft.category = catKey;
+  const cat = findCategory(catKey);
+  const subs = cat ? (cat.subcategories||[]) : [];
+  formDraft.subcategory = subs.length ? subs[0].key : null;
+  renderPostFormModal();
+}
 function addBlock(type){
   let block;
   if(type==='text') block = { type:'text', content:'' };
@@ -1448,17 +1681,19 @@ function render(){
   const route = currentRoute();
   const app = document.getElementById('app');
   if(route === 'home') app.innerHTML = pageHome();
-  else if(route === 'current-work') app.innerHTML = pageCurrentWork();
-  else if(route === 'conferences') app.innerHTML = pageConferences();
   else if(route === 'about') app.innerHTML = pageAbout();
   else if(route === 'contact') app.innerHTML = pageContact();
   else if(route === 'login') app.innerHTML = session ? pageAdmin() : pageLogin();
   else if(route === 'admin') app.innerHTML = pageAdmin();
   else if(route.startsWith('post-')) app.innerHTML = pagePostDetail(route.slice(5));
+  else if(route.startsWith('cat-')) app.innerHTML = pageCategory(route.slice(4));
+  else if(route === 'current-work') app.innerHTML = pageCategory('current'); // legacy link support
+  else if(route === 'conferences') app.innerHTML = pageCategory('conferences'); // legacy link support
   else app.innerHTML = pageHome();
   if(route==='admin' && formDraft){ renderPostFormModal(); }
   if(route==='admin' && themeEditDraft){ renderThemeEditorModal(); }
   if(route==='admin' && contentDraft){ renderContentEditorModal(); }
+  if(route==='admin' && categoryDraft){ renderCategoryEditorModal(); }
   window.scrollTo(0,0);
 }
 
@@ -1470,6 +1705,7 @@ function render(){
   try{
     THEMES = await buildThemes();
     CONTENT = await loadContent();
+    CATEGORIES = await loadCategories();
     const savedThemeSetting = await fetchSetting('theme', { active: 'standard' });
     await applyTheme(savedThemeSetting.active || 'standard', false);
     POSTS = await loadPosts();
