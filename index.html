@@ -29,11 +29,12 @@
     --mono:'IBM Plex Mono', monospace;
   }
   *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
+  html{scroll-behavior:smooth;overflow-x:hidden;max-width:100%;}
   body{
     margin:0;font-family:var(--sans);background:var(--surface);color:var(--ink);
     line-height:1.55;-webkit-font-smoothing:antialiased;
     transition:background .35s ease;
+    overflow-x:hidden;max-width:100%;
   }
   a{color:inherit;text-decoration:none;}
   h1,h2,h3,h4{font-family:var(--serif);margin:0 0 .4em 0;color:var(--primary-dark);font-weight:600;}
@@ -93,7 +94,8 @@
   .section-head .see-all{font-size:13.5px;font-weight:600;color:var(--secondary);border-bottom:1px solid var(--secondary);padding-bottom:1px;}
 
   .tri-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
-  .info-card{background:var(--surface-alt);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm);}
+  .info-card{background:var(--surface-alt);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-sm);cursor:pointer;transition:box-shadow .15s, transform .15s;}
+  .info-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px);}
   .info-card .tag{display:inline-block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--primary);background:#E4EEE9;padding:3px 9px;border-radius:20px;margin-bottom:10px;}
   .info-card h3{font-size:17px;margin-bottom:6px;}
   .info-card p{font-size:14px;color:var(--ink-soft);margin-bottom:0;}
@@ -113,13 +115,14 @@
   .type-icon{font-family:var(--mono);font-size:11px;color:var(--accent);}
 
   /* ---------- Gallery ---------- */
-  .gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin:14px 0;}
+  .gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;margin:14px 0;}
   .gallery-tile{aspect-ratio:4/3;border-radius:8px;display:flex;align-items:flex-end;padding:10px;color:#fff;font-size:12px;font-weight:600;position:relative;overflow:hidden;border:1px solid rgba(0,0,0,0.06);}
   .gallery-tile .cap{background:rgba(0,0,0,0.38);padding:4px 8px;border-radius:6px;line-height:1.3;}
   .gallery-tile .ph-icon{position:absolute;top:10px;right:10px;font-size:20px;opacity:.55;}
 
   /* ---------- Table ---------- */
-  table.data-table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px;}
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:14px 0;}
+  table.data-table{width:100%;border-collapse:collapse;margin:0;font-size:14px;}
   table.data-table th, table.data-table td{border:1px solid var(--line);padding:9px 12px;text-align:left;}
   table.data-table th{background:var(--surface);font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--primary-dark);}
   table.data-table tr:nth-child(even) td{background:#FAFBF9;}
@@ -721,9 +724,18 @@ async function logout(){ await supabaseClient.auth.signOut(); session = null; na
    PAGE: HOME
    ========================================================= */
 function pageHome(){
-  const upcoming = POSTS.filter(p=>p.category==='upcoming').slice(0,1)[0];
-  const recent = [...POSTS].sort((a,b)=> new Date(b.date)-new Date(a.date)).slice(0,5);
+  const byNewest = (a,b)=> new Date(b.date)-new Date(a.date);
+  const currentPost = POSTS.filter(p=>p.category==='current' || p.category==='general').sort(byNewest)[0];
+  const upcoming = POSTS.filter(p=>p.category==='upcoming').sort(byNewest)[0];
+  const pastPost = POSTS.filter(p=>p.category==='past').sort(byNewest)[0];
+  const recent = [...POSTS].sort(byNewest).slice(0,5);
   const t = THEMES[currentThemeKey];
+  const teaserCard = (post, fallbackRoute, tagHtml, fallbackTitle, fallbackDesc) => `
+    <div class="info-card" onclick="navigate('${post ? 'post-'+post.id : fallbackRoute}')">
+      ${tagHtml}
+      <h3>${post ? esc(post.title) : fallbackTitle}</h3>
+      <p>${post ? esc(getPostExcerpt(post,90) || 'Read more.') : fallbackDesc}</p>
+    </div>`;
   return `
     <div class="hero">
       <div class="hero-inner">
@@ -746,9 +758,9 @@ function pageHome(){
     </div>
     <div class="wrap section">
       <div class="tri-grid">
-        <div class="info-card"><span class="tag">Current Work</span><h3>Guideline reviews &amp; fellowships</h3><p>Ongoing committee work, clinical guidelines, and training programmes across the region.</p></div>
-        <div class="info-card"><span class="tag" style="background:var(--accent-soft);color:var(--primary-dark);">Upcoming</span><h3>${upcoming ? esc(upcoming.title) : 'Conferences & workshops'}</h3><p>${upcoming ? esc(excerpt(upcoming.content,90)) : 'Details on the next regional congress and workshops.'}</p></div>
-        <div class="info-card"><span class="tag" style="background:#E7E7E9;color:#4B4B52;">Past</span><h3>Congress archive</h3><p>Recaps, photos, and attendance records from previous SAARC-AA events.</p></div>
+        ${teaserCard(currentPost, 'current-work', '<span class="tag">Current Work</span>', 'Guideline reviews &amp; fellowships', 'Ongoing committee work, clinical guidelines, and training programmes across the region.')}
+        ${teaserCard(upcoming, 'conferences', '<span class="tag" style="background:var(--accent-soft);color:var(--primary-dark);">Upcoming</span>', 'Conferences &amp; workshops', 'Details on the next regional congress and workshops.')}
+        ${teaserCard(pastPost, 'conferences', '<span class="tag" style="background:#E7E7E9;color:#4B4B52;">Past</span>', 'Congress archive', 'Recaps, photos, and attendance records from previous SAARC-AA events.')}
       </div>
     </div>
     <div class="wrap section" style="padding-top:0;">
@@ -783,11 +795,15 @@ function migrateToBlocks(post){
 function blockIcon(type){ return { text:'¶', image:'🖼', gallery:'◇', table:'▦', file:'⬇' }[type] || '¶'; }
 function blockLabel(type){ return { text:'Text', image:'Image', gallery:'Image Gallery', table:'Table', file:'File Download' }[type] || type; }
 
+function getPostExcerpt(post, maxLen){
+  const textBlock = migrateToBlocks(post).find(b=>b.type==='text' && b.content && b.content.trim());
+  return textBlock ? excerpt(textBlock.content, maxLen) : '';
+}
+
 function postCardHtml(p){
   const blocks = migrateToBlocks(p);
   const typeIcons = [...new Set(blocks.map(b=>b.type))].map(blockIcon).join(' ');
-  const textBlock = blocks.find(b=>b.type==='text' && b.content && b.content.trim());
-  const excerptText = textBlock ? excerpt(textBlock.content,160) : '';
+  const excerptText = getPostExcerpt(p, 160);
   return `
     <div class="post-card" onclick="navigate('post-${p.id}')">
       <div class="post-meta"><span class="pill ${p.category}">${esc(CATEGORY_LABELS[p.category])}</span><span>${fmtDate(p.date)}</span><span class="type-icon">${typeIcons}</span></div>
@@ -882,8 +898,8 @@ function renderPostBlock(block){
   }
   if(block.type==='table'){
     if(!block.headers || !block.headers.length) return '';
-    return `<table class="data-table" style="margin-bottom:22px;"><thead><tr>${block.headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>`
-      + block.rows.map(row=>`<tr>${row.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('') + `</tbody></table>`;
+    return `<div class="table-scroll" style="margin-bottom:22px;"><table class="data-table"><thead><tr>${block.headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>`
+      + block.rows.map(row=>`<tr>${row.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('') + `</tbody></table></div>`;
   }
   if(block.type==='file'){
     if(!block.url) return '';
