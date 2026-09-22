@@ -330,9 +330,9 @@ const DEFAULT_CONTENT = {
     vicepresident: 'Dr. Asma',
     generalsecretary: 'Dr. Sadhima Rasheed'
   },
-  contactAddress: "Secretariat Office\n[Placeholder Address], [City], [Country]",
-  contactEmail: "secretariat@saarc-aa.org (placeholder)",
-  contactPhone: "+00 000 000 0000 (placeholder)"
+  contactAddress: "Secretariat Office\n[Address], [City], [Country]",
+  contactEmail: "secretariat@saarc-aa.org",
+  contactPhone: "+00 000 000 0000"
 };
 
 let CONTENT = {};
@@ -1263,7 +1263,7 @@ async function handleLogin(e){
 
   const adminKey = roleRow && roleRow.admin_key;
   if(roleError || !adminKey || !ROLE_LABELS[adminKey]){
-    loginError = "This account isn't set up as a SAARC-AA admin — check the admin_roles table in Supabase.";
+    loginError = "This account isn't set up as a SAARC-AA admin. Please contact the association for access.";
     await supabaseClient.auth.signOut();
     render();
     return;
@@ -1289,12 +1289,6 @@ function pageAdmin(){
 
       <div class="counter-card">
         <div><div class="lbl">Total Website Visits</div><div class="num">${VISIT_COUNT.toLocaleString()}</div></div>
-        <div style="font-size:12.5px;color:#CBD9D2;max-width:300px;text-align:right;">Counted across every visitor now that the site runs on a shared Supabase database.</div>
-      </div>
-
-      <div class="storage-meter">
-        <span>Data is stored in Supabase — <strong>shared with every visitor</strong>, not just this browser.</span>
-        <span style="color:var(--ink-soft);">Free-tier Supabase projects include 1 GB of file storage for photos — plenty for a while.</span>
       </div>
 
       <h3 style="margin-bottom:6px;">Site Theme</h3>
@@ -1664,7 +1658,7 @@ async function submitPostForm(e){
   const saved = await savePosts(POSTS);
   if(!saved){
     POSTS = previousPosts; // roll back so in-memory state matches what's actually persisted
-    alert("The post couldn't be saved to the database. Make sure you're still logged in, then try again.");
+    alert("The post couldn't be saved. Make sure you're still logged in, then try again.");
     if(submitBtn){ submitBtn.disabled = false; submitBtn.textContent = originalLabel; }
     return;
   }
@@ -1712,7 +1706,7 @@ function render(){
     VISIT_COUNT = await getVisitCount();
   }catch(err){
     console.error('Failed to load site data from Supabase', err);
-    document.getElementById('app').innerHTML = `<div class="wrap section"><div class="alert alert-error">Couldn't connect to the database. Double-check SUPABASE_URL and SUPABASE_ANON_KEY near the top of this file, and that the SQL setup script has been run.</div></div>`;
+    document.getElementById('app').innerHTML = `<div class="wrap section"><div class="alert alert-error">We're having trouble loading the site right now. Please try again shortly.</div></div>`;
     return;
   }
   render();
